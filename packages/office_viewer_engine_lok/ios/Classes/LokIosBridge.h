@@ -29,6 +29,9 @@ int office_viewer_lok_ios_get_document_type(intptr_t doc);
 int office_viewer_lok_ios_get_parts(intptr_t doc);
 void office_viewer_lok_ios_set_part(intptr_t doc, int partIndex);
 char* office_viewer_lok_ios_get_part_name(intptr_t doc, int partIndex);
+/// Writer page rectangles: "x, y, w, h; ..." in twips. Caller frees with
+/// [office_viewer_lok_ios_free_error].
+char* office_viewer_lok_ios_get_part_page_rectangles(intptr_t doc);
 
 void office_viewer_lok_ios_get_document_size(intptr_t doc, int64_t* widthTwips,
                                             int64_t* heightTwips);

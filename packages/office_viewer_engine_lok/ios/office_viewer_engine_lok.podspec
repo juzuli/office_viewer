@@ -34,17 +34,33 @@ Android: JNI + shared libs. iOS: static LOK archives + native bridge.
   # Preference is persisted in the host app's ios/.lok_link_enabled so a later
   # `flutter run` (which re-runs pod install without the ENV) does not flip it.
   # Package consumers are unaffected unless they set this themselves — default ON.
-  pref_file = File.expand_path(File.join(__dir__, '..', '..', '..', 'example', 'ios', '.lok_link_enabled'))
-  # Also accept a sibling next to the Podfile when the host isn't our example/.
-  pref_file = File.expand_path(File.join(Dir.pwd, '.lok_link_enabled')) unless File.file?(pref_file)
+  # Prefer the host Podfile directory; only fall back to this package's example/.
+  # Dir.pwd is unreliable while CocoaPods evaluates path podspecs — use
+  # installation_root (directory that contains the host Podfile).
+  install_root = begin
+                   Pod::Config.instance.installation_root.to_s
+                 rescue StandardError
+                   Dir.pwd
+                 end
+  host_pref = File.expand_path(File.join(install_root, '.lok_link_enabled'))
+  example_pref = File.expand_path(File.join(__dir__, '..', '..', '..', 'example', 'ios', '.lok_link_enabled'))
+  pref_file = if File.file?(host_pref)
+                host_pref
+              elsif File.file?(example_pref)
+                example_pref
+              end
   link_requested = if ENV.key?('OFFICE_VIEWER_LINK_LOK_IOS')
                      ENV['OFFICE_VIEWER_LINK_LOK_IOS'] != '0'
-                   elsif File.file?(pref_file)
+                   elsif pref_file
                      File.read(pref_file).strip != '0'
                    else
                      true
                    end
+  # Headers live in the self-built LO engine tree; without them the link is unusable.
+  engine_headers_ok = File.directory?(File.join(lo_engine, 'config_host')) ||
+                      File.file?(File.join(lo_engine, 'config_host', 'config_crypto.h'))
   lok_ready = link_requested &&
+              engine_headers_ok &&
               File.directory?(lok) && File.file?(list) && File.directory?(resources)
   Pod::UI.puts "office_viewer_engine_lok: LOK link #{lok_ready ? 'ON' : 'OFF (fast stub)'}"
 

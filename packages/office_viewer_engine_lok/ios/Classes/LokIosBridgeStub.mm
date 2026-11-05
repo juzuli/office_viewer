@@ -17,6 +17,9 @@ extern "C" int office_viewer_lok_ios_get_document_type(intptr_t) { return 4; }
 extern "C" int office_viewer_lok_ios_get_parts(intptr_t) { return 0; }
 extern "C" void office_viewer_lok_ios_set_part(intptr_t, int) {}
 extern "C" char* office_viewer_lok_ios_get_part_name(intptr_t, int) { return nullptr; }
+extern "C" char* office_viewer_lok_ios_get_part_page_rectangles(intptr_t) {
+  return nullptr;
+}
 extern "C" void office_viewer_lok_ios_get_document_size(intptr_t, int64_t* w, int64_t* h) {
   if (w) *w = 0;
   if (h) *h = 0;

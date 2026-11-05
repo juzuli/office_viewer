@@ -123,6 +123,8 @@ typedef _GetPartsNative = int Function(Pointer<LibreOfficeKitDocument>);
 typedef _SetPartNative = void Function(Pointer<LibreOfficeKitDocument>, int);
 typedef _GetPartNameNative = Pointer<Utf8> Function(
     Pointer<LibreOfficeKitDocument>, int);
+typedef _GetPartPageRectanglesNative = Pointer<Utf8> Function(
+    Pointer<LibreOfficeKitDocument>);
 typedef _GetDocumentSizeNative = void Function(
     Pointer<LibreOfficeKitDocument>, Pointer<IntPtr>, Pointer<IntPtr>);
 typedef _PaintTileNative = void Function(
@@ -282,6 +284,32 @@ class LokBindings {
     if (ptr == nullptr) return null;
     // Part names are owned by LOK; do not free with freeError.
     return ptr.toDartString();
+  }
+
+  /// Writer page rectangles as `"x, y, w, h; ..."` in twips, or null.
+  String? getPartPageRectangles(Pointer<LibreOfficeKitDocument> doc) {
+    if (iosBridge) {
+      final get = _lib.lookupFunction<
+          Pointer<Utf8> Function(IntPtr),
+          Pointer<Utf8> Function(
+              int)>('office_viewer_lok_ios_get_part_page_rectangles');
+      final free = _lib.lookupFunction<
+          Void Function(Pointer<Utf8>),
+          void Function(Pointer<Utf8>)>('office_viewer_lok_ios_free_error');
+      final ptr = get(doc.address);
+      if (ptr == nullptr) return null;
+      final value = ptr.toDartString();
+      free(ptr);
+      return value;
+    }
+    final ptr = _docClass(doc)
+        .getPartPageRectangles
+        .asFunction<_GetPartPageRectanglesNative>()(doc);
+    if (ptr == nullptr) return null;
+    final value = ptr.toDartString();
+    // LOK allocates this string — free via freeError (same as getError).
+    _kitClass.freeError.asFunction<_FreeErrorNative>()(ptr);
+    return value;
   }
 
   ({int widthTwips, int heightTwips}) getDocumentSize(

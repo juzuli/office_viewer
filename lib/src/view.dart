@@ -13,6 +13,8 @@ import 'viewer_limits.dart';
 ///
 /// * **Min zoom = fit width** (one canvas width + padding); no pinch-out into
 ///   empty space (see [OfficeViewOptions.minZoom]).
+/// * **Multi-page docs** use a vertical [PageView] with a hard snap per page
+///   (Instagram Reels–style); chrome `goToPart` animates the same snap.
 /// * **Horizontal scroll only when content is wider than the viewport**.
 /// * Pan / zoom **gesture locks** come from
 ///   [OfficeDocumentController.viewOptions] (or optional widget overrides).
@@ -62,9 +64,9 @@ class OfficeDocumentView extends StatelessWidget {
             return Center(child: Text(controller.error?.message ?? 'Failed'));
           case OfficeLoadState.ready:
             final handle = controller.handle!;
-            final stackable = handle.parts.isNotEmpty &&
-                handle.parts.first.kind != PartKind.sheet;
-            if (stackable && handle.parts.length > 1) {
+            // PDF pages, Writer page-rects, slides, and Excel sheets all use
+            // vertical snap paging when there is more than one part.
+            if (handle.parts.length > 1) {
               return _ScrollablePartsDocument(
                 key: ValueKey('stack-${identityHashCode(handle)}'),
                 controller: controller,
@@ -165,8 +167,10 @@ ScrollPhysics _axisPhysics({required bool overflow}) => overflow
     ? const ClampingScrollPhysics()
     : const NeverScrollableScrollPhysics();
 
-/// Multi page/slide: vertical list + H-scroll only when a page is wider than
-/// the viewport (zoomed in).
+/// Multi page/slide: Instagram Reels–style vertical [PageView] with a hard
+/// snap stopper per page. Horizontal pan only when a page is wider than the
+/// viewport (zoomed in). When zoom makes a page taller than the viewport,
+/// that page can scroll vertically *within* its snap slot.
 class _ScrollablePartsDocument extends StatefulWidget {
   const _ScrollablePartsDocument({
     super.key,
@@ -188,8 +192,7 @@ class _ScrollablePartsDocument extends StatefulWidget {
 
 class _ScrollablePartsDocumentState extends State<_ScrollablePartsDocument>
     with _PinchToZoomMixin<_ScrollablePartsDocument> {
-  final ScrollController _vScroll = ScrollController();
-  final List<GlobalKey> _partKeys = [];
+  late final PageController _pageController;
   bool _programmaticScroll = false;
   int _lastSyncedPart = 0;
 
@@ -206,12 +209,12 @@ class _ScrollablePartsDocumentState extends State<_ScrollablePartsDocument>
   @override
   void initState() {
     super.initState();
-    _ensureKeys();
-    _lastSyncedPart = widget.controller.currentPart;
+    final initial = widget.controller.currentPart
+        .clamp(0, math.max(0, widget.handle.parts.length - 1))
+        .toInt();
+    _lastSyncedPart = initial;
+    _pageController = PageController(initialPage: initial);
     widget.controller.addListener(_onController);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToPart(widget.controller.currentPart, animate: false);
-    });
   }
 
   @override
@@ -222,26 +225,18 @@ class _ScrollablePartsDocumentState extends State<_ScrollablePartsDocument>
       widget.controller.addListener(_onController);
     }
     if (old.handle != widget.handle) {
-      _ensureKeys();
       _lastSyncedPart = 0;
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(0);
+      }
     }
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(_onController);
-    _vScroll.dispose();
+    _pageController.dispose();
     super.dispose();
-  }
-
-  void _ensureKeys() {
-    final n = widget.handle.parts.length;
-    while (_partKeys.length < n) {
-      _partKeys.add(GlobalKey(debugLabel: 'part-${_partKeys.length}'));
-    }
-    if (_partKeys.length > n) {
-      _partKeys.removeRange(n, _partKeys.length);
-    }
   }
 
   void _onController() {
@@ -259,55 +254,46 @@ class _ScrollablePartsDocumentState extends State<_ScrollablePartsDocument>
   }
 
   Future<void> _scrollToPart(int index, {required bool animate}) async {
-    if (index < 0 || index >= _partKeys.length) return;
-    final ctx = _partKeys[index].currentContext;
-    if (ctx == null) {
+    final max = widget.handle.parts.length - 1;
+    if (index < 0 || index > max) return;
+    if (!_pageController.hasClients) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _scrollToPart(index, animate: animate);
       });
       return;
     }
+    final currentPage =
+        _pageController.page?.round() ?? _pageController.initialPage;
+    if (currentPage == index) return;
     _programmaticScroll = true;
     try {
-      await Scrollable.ensureVisible(
-        ctx,
-        alignment: 0.05,
-        duration: animate ? const Duration(milliseconds: 280) : Duration.zero,
-        curve: Curves.easeOutCubic,
-      );
+      if (animate) {
+        await _pageController.animateToPage(
+          index,
+          // Slightly longer easeInOut reads less abrupt than easeOut on
+          // chrome next/prev and matches Reels-style page settles.
+          duration: const Duration(milliseconds: 360),
+          curve: Curves.easeInOutCubic,
+        );
+      } else {
+        _pageController.jumpToPage(index);
+      }
     } finally {
       _programmaticScroll = false;
     }
   }
 
-  void _onScroll() {
-    if (_programmaticScroll || !_vScroll.hasClients || gesturing) return;
-    final visible = _indexMostVisible();
-    if (visible != null && visible != widget.controller.currentPart) {
-      _lastSyncedPart = visible;
-      widget.controller.syncPartFromScroll(visible);
+  void _onPageChanged(int index) {
+    if (_programmaticScroll) {
+      _lastSyncedPart = index;
+      return;
     }
-  }
-
-  int? _indexMostVisible() {
-    final box = context.findRenderObject() as RenderBox?;
-    if (box == null || !box.hasSize) return null;
-    final viewport = box.localToGlobal(Offset.zero) & box.size;
-    var bestIndex = 0;
-    var bestOverlap = -1.0;
-    for (var i = 0; i < _partKeys.length; i++) {
-      final ctx = _partKeys[i].currentContext;
-      if (ctx == null) continue;
-      final ro = ctx.findRenderObject();
-      if (ro is! RenderBox || !ro.hasSize) continue;
-      final rect = ro.localToGlobal(Offset.zero) & ro.size;
-      final overlap = rect.intersect(viewport).height;
-      if (overlap > bestOverlap) {
-        bestOverlap = overlap;
-        bestIndex = i;
-      }
+    if (index != widget.controller.currentPart) {
+      _lastSyncedPart = index;
+      widget.controller.syncPartFromScroll(index);
+    } else {
+      _lastSyncedPart = index;
     }
-    return bestOverlap > 0 ? bestIndex : null;
   }
 
   @override
@@ -321,7 +307,11 @@ class _ScrollablePartsDocumentState extends State<_ScrollablePartsDocument>
       final viewportW = constraints.maxWidth.isFinite
           ? constraints.maxWidth
           : 400.0;
-      final canvasW = viewportW - 2 * pad;
+      final viewportH = constraints.maxHeight.isFinite
+          ? constraints.maxHeight
+          : 600.0;
+      final canvasW = math.max(1.0, viewportW - 2 * pad);
+      final pageSlotH = math.max(1.0, viewportH);
 
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -330,64 +320,287 @@ class _ScrollablePartsDocumentState extends State<_ScrollablePartsDocument>
         onScaleEnd: widget.zoomEnabled ? onScaleEnd : null,
         onDoubleTap: widget.zoomEnabled ? onDoubleTapZoom : null,
         child: pinchLayer(
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (n) {
-              if (n is ScrollUpdateNotification || n is ScrollEndNotification) {
-                _onScroll();
+          child: PageView.builder(
+            controller: _pageController,
+            scrollDirection: Axis.vertical,
+            allowImplicitScrolling: true,
+            physics: pan
+                ? const PageScrollPhysics(parent: ClampingScrollPhysics())
+                : const NeverScrollableScrollPhysics(),
+            itemCount: parts.length,
+            onPageChanged: _onPageChanged,
+            itemBuilder: (context, i) {
+              final part = parts[i];
+              if (part.kind == PartKind.sheet) {
+                // Sheets need 2D pan + viewport tile culling inside each
+                // snap slot; page/slide slots use the simpler centered layout.
+                return _SheetSnapPage(
+                  key: ValueKey('sheet-slot-${part.index}'),
+                  handle: widget.handle,
+                  part: part,
+                  panEnabled: pan,
+                  tileZoom: tileZoom,
+                  tileZoomEpoch: tileZoomEpoch,
+                  viewportW: viewportW,
+                  viewportH: pageSlotH,
+                  pagePadding: pad,
+                  onEdgeSwipe: (delta) {
+                    final target =
+                        (i + delta).clamp(0, parts.length - 1).toInt();
+                    if (target == i) return;
+                    // Let controller listener drive animateToPage.
+                    widget.controller.goToPart(target);
+                  },
+                );
               }
-              return false;
-            },
-            child: ListView.separated(
-              controller: _vScroll,
-              physics: _axisPhysics(overflow: pan),
-              padding: EdgeInsets.symmetric(vertical: pad),
-              itemCount: parts.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: OfficeDocumentView.partGap),
-              itemBuilder: (context, i) {
-                final part = parts[i];
-                final fit = canvasW / part.size.width;
-                final contentW = part.size.width * fit * tileZoom;
-                final needsH = pan && contentW > canvasW + 0.5;
 
-                return KeyedSubtree(
-                  key: _partKeys[i],
+              final fit = canvasW / part.size.width;
+              final contentW = part.size.width * fit * tileZoom;
+              final pageH = part.size.height * fit * tileZoom;
+              final needsH = pan && contentW > canvasW + 0.5;
+              final needsV = pan && pageH > (pageSlotH - 2 * pad) + 0.5;
+
+              return SizedBox(
+                width: viewportW,
+                height: pageSlotH,
+                child: Padding(
+                  padding: EdgeInsets.all(pad),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(pad, 0, pad, 6),
-                        child: Text(
-                          part.name ?? 'Part ${part.index + 1}',
-                          style: Theme.of(context).textTheme.labelMedium,
-                        ),
+                      Text(
+                        part.name ?? 'Part ${part.index + 1}',
+                        style: Theme.of(context).textTheme.labelMedium,
                       ),
-                      SizedBox(
-                        height: part.size.height * fit * tileZoom,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          physics: _axisPhysics(overflow: needsH),
-                          padding: EdgeInsets.symmetric(horizontal: pad),
-                          child: _PartView(
-                            key: ValueKey(
-                                'tiles-${part.index}-$tileZoom-$tileZoomEpoch'),
-                            handle: widget.handle,
-                            part: part,
-                            zoom: tileZoom,
-                            viewportWidth: canvasW,
-                            cullToViewport: false,
+                      SizedBox(height: pad > 0 ? 6 : 0),
+                      Expanded(
+                        child: Center(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            physics: _axisPhysics(overflow: needsV),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: _axisPhysics(overflow: needsH),
+                              child: SizedBox(
+                                width: contentW,
+                                height: pageH,
+                                child: _PartView(
+                                  key: ValueKey(
+                                      'tiles-${part.index}-$tileZoom-$tileZoomEpoch'),
+                                  handle: widget.handle,
+                                  part: part,
+                                  zoom: tileZoom,
+                                  viewportWidth: canvasW,
+                                  cullToViewport: false,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         ),
       );
     });
+  }
+}
+
+/// One Excel/Calc sheet inside a vertical snap [PageView] slot.
+///
+/// Free 2D pan with viewport-culled tiles. Sheet-to-sheet moves use the outer
+/// [PageView] (swipe or chrome next/prev).
+class _SheetSnapPage extends StatefulWidget {
+  const _SheetSnapPage({
+    super.key,
+    required this.handle,
+    required this.part,
+    required this.panEnabled,
+    required this.tileZoom,
+    required this.tileZoomEpoch,
+    required this.viewportW,
+    required this.viewportH,
+    required this.pagePadding,
+    this.onEdgeSwipe,
+  });
+
+  final OfficeDocumentHandle handle;
+  final PartInfo part;
+  final bool panEnabled;
+  final double tileZoom;
+  final int tileZoomEpoch;
+  final double viewportW;
+  final double viewportH;
+  final double pagePadding;
+
+  /// Called with `-1` / `+1` when the user flings past the top/bottom edge.
+  final ValueChanged<int>? onEdgeSwipe;
+
+  @override
+  State<_SheetSnapPage> createState() => _SheetSnapPageState();
+}
+
+class _SheetSnapPageState extends State<_SheetSnapPage> {
+  static const double _kEdgeFlingVelocity = 700;
+
+  final ScrollController _hScroll = ScrollController();
+  final ScrollController _vScroll = ScrollController();
+  Rect _visiblePartRect = const Rect.fromLTWH(0, 0, 1024, 1024);
+
+  @override
+  void initState() {
+    super.initState();
+    _hScroll.addListener(_updateVisibleFromScroll);
+    _vScroll.addListener(_updateVisibleFromScroll);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SheetSnapPage old) {
+    super.didUpdateWidget(old);
+    if (old.part.index != widget.part.index || old.handle != widget.handle) {
+      _visiblePartRect = const Rect.fromLTWH(0, 0, 1024, 1024);
+      if (_hScroll.hasClients) _hScroll.jumpTo(0);
+      if (_vScroll.hasClients) _vScroll.jumpTo(0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _hScroll.removeListener(_updateVisibleFromScroll);
+    _vScroll.removeListener(_updateVisibleFromScroll);
+    _hScroll.dispose();
+    _vScroll.dispose();
+    super.dispose();
+  }
+
+  void _updateVisibleFromScroll() {
+    final pad = widget.pagePadding;
+    final canvasW = widget.viewportW - 2 * pad;
+    final fit = canvasW / widget.part.size.width;
+    final pxPerPoint = fit * widget.tileZoom;
+    if (pxPerPoint <= 0) return;
+    final hx = _hScroll.hasClients ? _hScroll.offset : 0.0;
+    final vy = _vScroll.hasClients ? _vScroll.offset : 0.0;
+    final region = Rect.fromLTWH(
+      hx / pxPerPoint,
+      vy / pxPerPoint,
+      widget.viewportW / pxPerPoint,
+      widget.viewportH / pxPerPoint,
+    ).inflate(OfficeDocumentView.tilePoints);
+    if (region == _visiblePartRect) return;
+    setState(() => _visiblePartRect = region);
+  }
+
+  bool _onSheetScrollNotification(ScrollNotification notification) {
+    if (widget.onEdgeSwipe == null) return false;
+    if (notification is! ScrollEndNotification) return false;
+    if (notification.metrics.axis != Axis.vertical) return false;
+    if (!_vScroll.hasClients) return false;
+
+    final velocity = notification.dragDetails?.primaryVelocity;
+    if (velocity == null) return false;
+
+    final atTop = _vScroll.offset <= 0.5;
+    final atBottom =
+        _vScroll.offset >= _vScroll.position.maxScrollExtent - 0.5;
+
+    // Drag down (positive velocity) at top → previous sheet.
+    if (atTop && velocity > _kEdgeFlingVelocity) {
+      widget.onEdgeSwipe!(-1);
+      return true;
+    }
+    // Drag up (negative velocity) at bottom → next sheet.
+    if (atBottom && velocity < -_kEdgeFlingVelocity) {
+      widget.onEdgeSwipe!(1);
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pad = widget.pagePadding;
+    final canvasW = math.max(1.0, widget.viewportW - 2 * pad);
+    final fit = canvasW / widget.part.size.width;
+    final contentW = widget.part.size.width * fit * widget.tileZoom;
+    final contentH = widget.part.size.height * fit * widget.tileZoom;
+    final pan = widget.panEnabled;
+    final viewW = math.max(0.0, widget.viewportW - 2 * pad);
+    final viewH = math.max(0.0, widget.viewportH - 2 * pad);
+    final needsH = pan && contentW > viewW + 0.5;
+    final needsV = pan && contentH > viewH + 0.5;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _updateVisibleFromScroll();
+    });
+
+    return SizedBox(
+      width: widget.viewportW,
+      height: widget.viewportH,
+      child: Padding(
+        padding: EdgeInsets.all(pad),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              widget.part.name ?? 'Sheet ${widget.part.index + 1}',
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
+            SizedBox(height: pad > 0 ? 6 : 0),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final slotW = constraints.maxWidth;
+                  final slotH = constraints.maxHeight;
+
+                  return NotificationListener<ScrollNotification>(
+                    onNotification: _onSheetScrollNotification,
+                    child: SingleChildScrollView(
+                      controller: _vScroll,
+                      physics: _axisPhysics(overflow: needsV),
+                      child: SizedBox(
+                        // Fill the slot when the sheet is shorter/narrower so
+                        // Align can center it (same as PDF/slide pages).
+                        height: needsV ? contentH : slotH,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: SingleChildScrollView(
+                            controller: _hScroll,
+                            scrollDirection: Axis.horizontal,
+                            physics: _axisPhysics(overflow: needsH),
+                            child: SizedBox(
+                              width: needsH ? contentW : slotW,
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: _PartView(
+                                  key: ValueKey(
+                                    'sheet-tiles-${widget.part.index}-${widget.tileZoom}-${widget.tileZoomEpoch}',
+                                  ),
+                                  handle: widget.handle,
+                                  part: widget.part,
+                                  zoom: widget.tileZoom,
+                                  viewportWidth: canvasW,
+                                  cullToViewport: true,
+                                  visiblePartRegion: _visiblePartRect,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -516,6 +729,11 @@ class _SinglePartDocumentState extends State<_SinglePartDocument>
         if (mounted) _updateVisibleFromScroll();
       });
 
+      // When the page is smaller than the viewport (common at fit-width on
+      // tall phones), center it — don't pin to the top-left.
+      final viewW = math.max(0.0, vw - 2 * pad);
+      final viewH = math.max(0.0, vh - 2 * pad);
+
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onScaleStart: widget.zoomEnabled ? onScaleStart : null,
@@ -528,18 +746,30 @@ class _SinglePartDocumentState extends State<_SinglePartDocument>
             child: SingleChildScrollView(
               controller: _vScroll,
               physics: _axisPhysics(overflow: needsV),
-              child: SingleChildScrollView(
-                controller: _hScroll,
-                scrollDirection: Axis.horizontal,
-                physics: _axisPhysics(overflow: needsH),
-                child: _PartView(
-                  key: ValueKey('tiles-$tileZoom-$tileZoomEpoch'),
-                  handle: widget.handle,
-                  part: widget.part,
-                  zoom: tileZoom,
-                  viewportWidth: canvasW,
-                  cullToViewport: cull,
-                  visiblePartRegion: cull ? _visiblePartRect : null,
+              child: SizedBox(
+                height: needsV ? contentH : viewH,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: SingleChildScrollView(
+                    controller: _hScroll,
+                    scrollDirection: Axis.horizontal,
+                    physics: _axisPhysics(overflow: needsH),
+                    child: SizedBox(
+                      width: needsH ? contentW : viewW,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: _PartView(
+                          key: ValueKey('tiles-$tileZoom-$tileZoomEpoch'),
+                          handle: widget.handle,
+                          part: widget.part,
+                          zoom: tileZoom,
+                          viewportWidth: canvasW,
+                          cullToViewport: cull,
+                          visiblePartRegion: cull ? _visiblePartRect : null,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -225,6 +225,19 @@ extern "C" char* office_viewer_lok_ios_get_part_name(intptr_t doc,
   return DupCString(d->getPartName(partIndex));
 }
 
+extern "C" char* office_viewer_lok_ios_get_part_page_rectangles(intptr_t doc) {
+  auto* d = AsDoc(doc);
+  if (d == nullptr) {
+    return nullptr;
+  }
+  try {
+    return DupCString(d->getPartPageRectangles());
+  } catch (...) {
+    NSLog(@"office_viewer_lok_ios_get_part_page_rectangles: failed");
+    return nullptr;
+  }
+}
+
 extern "C" void office_viewer_lok_ios_get_document_size(intptr_t doc,
                                                        int64_t* widthTwips,
                                                        int64_t* heightTwips) {

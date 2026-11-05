@@ -11,7 +11,9 @@ class PartInfo {
     required this.kind,
     required this.size,
     this.name,
-  });
+    this.contentOrigin = Offset.zero,
+    int? lokPartIndex,
+  }) : lokPartIndex = lokPartIndex ?? index;
 
   final int index;
   final PartKind kind;
@@ -22,6 +24,17 @@ class PartInfo {
   /// Size in logical points (1/72 in) at scale 1.0. For sheets this is the
   /// used-area size, which can be very large; that is why rendering is tiled.
   final Size size;
+
+  /// Origin of this page inside the LOK document part (points).
+  ///
+  /// Writer exposes one LOK part but multiple page rectangles via
+  /// `getPartPageRectangles`; each virtual [PartInfo] keeps its page offset
+  /// here so tiles paint the correct page without continuous long-scroll.
+  final Offset contentOrigin;
+
+  /// Argument for LOK `setPart` before painting. Writer virtual pages all
+  /// share LOK part `0`; Impress/Calc use [index].
+  final int lokPartIndex;
 }
 
 /// A request for one rectangle of one part, in part coordinates (points).

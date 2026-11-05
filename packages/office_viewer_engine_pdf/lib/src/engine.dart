@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -135,9 +134,8 @@ class _PdfDocumentHandle implements OfficeDocumentHandle {
       throw const CorruptDocumentError('PDF render returned null');
     }
     try {
-      final rgba = image.format == ui.PixelFormat.bgra8888
-          ? _bgraToRgba(image.pixels)
-          : Uint8List.fromList(image.pixels);
+      // pdfrx ≥2 always exposes BGRA8888 buffers.
+      final rgba = _bgraToRgba(image.pixels);
       return RenderedTile(rgba: rgba, width: image.width, height: image.height);
     } finally {
       image.dispose();

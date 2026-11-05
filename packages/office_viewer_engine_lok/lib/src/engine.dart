@@ -202,23 +202,40 @@ class LokOfficeEngine implements OfficeEngine {
       return s;
     }
 
-    final firstSize = listedParts > 0 ? sizeOf(0) : const ui.Size(612, 792);
-    for (var i = 0; i < listedParts; i++) {
-      final size = probeEach ? (i == 0 ? firstSize : sizeOf(i)) : firstSize;
-      final name = (!probeEach && i > 0)
-          ? 'Page ${i + 1}'
-          : bindings.getPartName(doc, i);
-      parts.add(
-        PartInfo(
-          index: i,
-          kind: kind,
-          name: name,
-          size: size,
-        ),
+    // Writer (DOCX/DOC/ODT): LOK exposes a single continuous part. Page snap
+    // needs getPartPageRectangles → one virtual PartInfo per page.
+    if (kind == PartKind.page) {
+      final rectStr = bindings.getPartPageRectangles(doc);
+      final virtual = _virtualPartsFromPageRectangles(
+        rectStr,
+        kind: kind,
+        lokPartIndex: 0,
       );
+      if (virtual.length > 1) {
+        debugPrint('LOK writer pageRects=${virtual.length}');
+        parts.addAll(virtual);
+      }
+    }
+
+    if (parts.isEmpty) {
+      final firstSize = listedParts > 0 ? sizeOf(0) : const ui.Size(612, 792);
+      for (var i = 0; i < listedParts; i++) {
+        final size = probeEach ? (i == 0 ? firstSize : sizeOf(i)) : firstSize;
+        final name = (!probeEach && i > 0)
+            ? 'Page ${i + 1}'
+            : bindings.getPartName(doc, i);
+        parts.add(
+          PartInfo(
+            index: i,
+            kind: kind,
+            name: name,
+            size: size,
+          ),
+        );
+      }
     }
     if (parts.isNotEmpty) {
-      bindings.setPart(doc, 0);
+      bindings.setPart(doc, parts.first.lokPartIndex);
     }
 
     return LokDocumentHandle(
@@ -300,6 +317,45 @@ class LokOfficeEngine implements OfficeEngine {
     }
   }
 
+  /// Parses LOK `getPartPageRectangles` (`"x, y, w, h; ..."` in twips).
+  static List<PartInfo> _virtualPartsFromPageRectangles(
+    String? raw, {
+    required PartKind kind,
+    required int lokPartIndex,
+  }) {
+    if (raw == null) return const [];
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return const [];
+
+    final parts = <PartInfo>[];
+    for (final chunk in trimmed.split(';')) {
+      final piece = chunk.trim();
+      if (piece.isEmpty) continue;
+      final nums = piece
+          .split(',')
+          .map((s) => double.tryParse(s.trim()))
+          .toList(growable: false);
+      if (nums.length < 4 || nums.any((n) => n == null)) continue;
+      final x = nums[0]! / twipsPerPoint;
+      final y = nums[1]! / twipsPerPoint;
+      final w = nums[2]! / twipsPerPoint;
+      final h = nums[3]! / twipsPerPoint;
+      if (w <= 1 || h <= 1) continue;
+      final index = parts.length;
+      parts.add(
+        PartInfo(
+          index: index,
+          kind: kind,
+          name: 'Page ${index + 1}',
+          size: ui.Size(w, h),
+          contentOrigin: ui.Offset(x, y),
+          lokPartIndex: lokPartIndex,
+        ),
+      );
+    }
+    return parts;
+  }
+
   Future<String> _materialize(
     DocumentSource source,
     OpenOptions options,
@@ -372,7 +428,18 @@ class LokDocumentHandle implements OfficeDocumentHandle {
     if (_closed) {
       throw const CorruptDocumentError('Document already closed');
     }
-    final result = await engine.paintTileTimed(doc, request);
+    if (request.partIndex < 0 || request.partIndex >= parts.length) {
+      throw CorruptDocumentError('Bad part index ${request.partIndex}');
+    }
+    final part = parts[request.partIndex];
+    // Writer virtual pages share LOK part 0; shift the tile into document
+    // coordinates using the page rectangle origin.
+    final adjusted = TileRequest(
+      partIndex: part.lokPartIndex,
+      region: request.region.shift(part.contentOrigin),
+      scale: request.scale,
+    );
+    final result = await engine.paintTileTimed(doc, adjusted);
     lastTileMilliseconds = result.elapsedMs;
     return result.tile;
   }
