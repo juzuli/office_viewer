@@ -1,24 +1,48 @@
 # office_viewer
 
 Tile-based **document viewer** for Flutter (**iOS + Android**).  
-**Publisher:** Leafpane — open the file, leave it alone.  
-Package id: `office_viewer` (`flutter pub add office_viewer`).
+**Publisher:** Leafpane — open the file, leave it alone.
 
 Scope is open → paint → pan/zoom local files. No edit, search, or print — host
 apps own sharing and chrome.
 
+## Install (PDF on pub.dev)
+
+```bash
+flutter pub add office_viewer office_viewer_engine_pdf
+```
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:office_viewer/office_viewer.dart';
+import 'package:office_viewer_engine_pdf/office_viewer_engine_pdf.dart';
+
+void main() {
+  OfficeEngineRegistry.instance
+    ..clear()
+    ..register(PdfOfficeEngine());
+  runApp(const MyApp());
+}
+
+// Inside a widget:
+final controller = OfficeDocumentController();
+await controller.load(
+  DocumentSource.bytes(pdfBytes, fileName: 'doc.pdf'),
+);
+// ...
+OfficeDocumentView(controller: controller);
+```
+
+Packages: [`office_viewer`](https://pub.dev/packages/office_viewer) ·
+[`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf)
+
 ## Status (pub.dev — PDF first)
 
-| Package | On pub.dev plan | What works |
+| Package | pub.dev | What works |
 |---|---|---|
 | `office_viewer` | **0.0.1** | Viewer API, controller, tiles |
 | `office_viewer_engine_pdf` | **0.0.1** | **Real PDF** via pdfrx |
-| `office_viewer_engine_lok` | Not yet | DOCX/XLSX/PPTX — private binary spike; Office-on-pub later (WebView OSS or redistributable native) |
-
-```dart
-OfficeEngineRegistry.instance.register(PdfOfficeEngine());
-await controller.load(DocumentSource.bytes(bytes, fileName: 'a.pdf'));
-```
+| `office_viewer_engine_lok` | Not yet | DOCX/XLSX/PPTX — private binary spike; Office-on-pub later |
 
 ```bash
 flutter pub get && flutter analyze && flutter test
@@ -47,7 +71,7 @@ final controller = OfficeDocumentController(
   ),
 );
 
-await controller.load(DocumentSource.bytes(bytes, fileName: 'a.docx'));
+await controller.load(DocumentSource.bytes(bytes, fileName: 'a.pdf'));
 // Encrypted files: catch PasswordRequiredError and retry with:
 // await controller.load(source, options: OpenOptions(password: pwd));
 

@@ -1,14 +1,26 @@
 # office_viewer_engine_pdf
 
-PDFium-backed PDF engine for [`office_viewer`](../..) via [pdfrx](https://pub.dev/packages/pdfrx).
+PDFium-backed PDF engine for [`office_viewer`](https://pub.dev/packages/office_viewer)
+via [pdfrx](https://pub.dev/packages/pdfrx).
 
-Register **before** `LokOfficeEngine` so PDFs never hit LibreOfficeKit (hard
-UNO asserts / process abort on some files — BUG-004).
+## Install
 
-```dart
-registry
-  ..register(PdfOfficeEngine())
-  ..register(LokOfficeEngine());
+```bash
+flutter pub add office_viewer office_viewer_engine_pdf
 ```
 
-Supports `OfficeFormat.pdf` on Android and iOS only.
+```dart
+import 'package:office_viewer/office_viewer.dart';
+import 'package:office_viewer_engine_pdf/office_viewer_engine_pdf.dart';
+
+OfficeEngineRegistry.instance.register(PdfOfficeEngine());
+
+final controller = OfficeDocumentController();
+await controller.load(DocumentSource.bytes(bytes, fileName: 'a.pdf'));
+OfficeDocumentView(controller: controller);
+```
+
+Register this engine **before** any Office/LOK engine so PDFs never hit the
+native Office stack.
+
+Supports `OfficeFormat.pdf` on **Android and iOS** only.
