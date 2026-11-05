@@ -1,0 +1,59 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+**/.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ / IDE
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Analyze scratch dumps
+.ex_analyze.txt
+.lok_analyze.txt
+.root_analyze.txt
+
+# Internal recon / brand notes (not product)
+/replica/
+
+# Flutter/Dart/Pub
+**/doc/api/
+.dart_tool/
+**/.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+**/build/
+coverage/
+**/pubspec.lock
+
+# LOK spike binaries — never commit / never publish
+packages/office_viewer_engine_lok/third_party/
+packages/office_viewer_engine_lok/tool/cache/
+packages/office_viewer_engine_lok/ios/LokIosResources/
+example/ios/.symlinks/
+example/ios/Pods/
+example/android/.gradle/
+
+# Symbolication / obfuscation
+app.*.symbols
+app.*.map.json
+
+# Android local
+**/local.properties
+**/.gradle/
+**/.kotlin/

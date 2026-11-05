@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Leafpane Deep Teal — keep in sync with replica/design/tokens.json -->
+<resources>
+    <color name="leafpane_primary">#087F8C</color>
+    <color name="leafpane_surface">#F0F6F6</color>
+    <color name="leafpane_secondary">#55A6A0</color>
+    <color name="leafpane_accent">#D5A64A</color>
+</resources>

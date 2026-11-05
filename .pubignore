@@ -1,0 +1,14 @@
+packages/
+example/
+replica/
+e2e/
+tool/
+website/
+build/
+.dart_tool/
+.vscode/
+.ex_analyze.txt
+.lok_analyze.txt
+.root_analyze.txt
+pubspec.lock
+*.bak

@@ -1,0 +1,20 @@
+name: office_viewer
+description: Tile-based Flutter viewer for local documents. Host-owned chrome, fit-width pan and zoom, soft-fail on corrupt docs. PDF via office_viewer_engine_pdf.
+version: 0.0.1
+publish_to: none
+homepage: https://github.com/juzuli/office_viewer
+repository: https://github.com/juzuli/office_viewer
+issue_tracker: https://github.com/juzuli/office_viewer/issues
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0

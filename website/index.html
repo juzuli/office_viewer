@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leafpane — Open the file. Leave it alone.</title>
+  <meta name="description" content="office_viewer by Leafpane: embed a local Office and PDF tile viewer in Flutter. No upload. No fake editor." />
+  <meta name="theme-color" content="#087F8C" />
+  <meta property="og:title" content="Leafpane — Open the file. Leave it alone." />
+  <meta property="og:description" content="Flutter package for local Office and PDF tiles. Host-owned chrome. Soft-fail." />
+  <meta property="og:image" content="assets/leafpane-viewer-hero.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="top">
+    <p class="brand-mark" aria-label="Leafpane">Leafpane</p>
+    <nav aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://pub.dev/packages/office_viewer">pub.dev</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="brand-hero">Leafpane</p>
+        <h1 id="hero-title">Open the file. Leave it alone.</h1>
+        <p class="lede">Embed a local Office and PDF viewer in your Flutter app — tiles, fit-width, host-owned chrome. No upload. No fake editor.</p>
+        <p class="cta-row">
+          <a class="btn" href="https://pub.dev/packages/office_viewer">Add office_viewer</a>
+        </p>
+      </div>
+      <div class="hero-visual" aria-hidden="false">
+        <img
+          class="hero-shot"
+          src="assets/leafpane-viewer-hero.jpg"
+          width="1280"
+          height="720"
+          alt="Leafpane example app showing a document open in a mobile viewer with fit-width tiles."
+        />
+      </div>
+    </section>
+
+    <section class="band problem" aria-labelledby="problem-title">
+      <h2 id="problem-title">You only needed to open it</h2>
+      <p class="section-lede">Full mobile suites stall on spreadsheets and freeze on bad files. Host apps that wrap them inherit chrome and crash risk they never asked for.</p>
+    </section>
+
+    <section class="band" id="how" aria-labelledby="how-title">
+      <h2 id="how-title">How it works</h2>
+      <p class="section-lede">Three steps from package to paint.</p>
+      <ol class="steps">
+        <li><span class="step-n">1</span><div><strong>Add the package</strong><p>Register a PDF engine and an Office engine in your host.</p></div></li>
+        <li><span class="step-n">2</span><div><strong>Load a local source</strong><p>Bytes or path. Password UI stays yours.</p></div></li>
+        <li><span class="step-n">3</span><div><strong>Paint tiles</strong><p>Pan, pinch, fit-width. Switch sheet, slide, or part.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="band features" aria-labelledby="features-title">
+      <h2 id="features-title">Built for the pain points</h2>
+      <p class="section-lede">Parity opens the file. These keep the host calm.</p>
+      <ul class="feature-list">
+        <li>Soft-fail huge or corrupt Office files — the host stays up</li>
+        <li>PDF on its own path — never abort the process for a PDF</li>
+        <li>Sheet and slide parts you can actually see</li>
+        <li>Fit-width default and pinch that commits</li>
+        <li>Viewport-culled sheet tiles for large workbooks</li>
+        <li>Offline local open as the default story</li>
+      </ul>
+    </section>
+
+    <section class="band" id="pricing" aria-labelledby="pricing-title">
+      <h2 id="pricing-title">Pricing</h2>
+      <p class="section-lede">The package is MIT on pub.dev. Pay only if you want people on the other end.</p>
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th scope="col">Tier</th>
+            <th scope="col">Who</th>
+            <th scope="col">Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Open</th>
+            <td>Hobby and OSS hosts</td>
+            <td>$0</td>
+          </tr>
+          <tr>
+            <th scope="row">Studio</th>
+            <td>Indie apps shipping the viewer</td>
+            <td>$49 / mo · $490 / yr</td>
+          </tr>
+          <tr>
+            <th scope="row">Product</th>
+            <td>Teams embedding in a revenue app</td>
+            <td>$199 / mo · $1,990 / yr</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="band faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">FAQ</h2>
+      <dl>
+        <dt>Is this an editor?</dt>
+        <dd>No. View only. We do not ship Save.</dd>
+        <dt>Does it upload my files?</dt>
+        <dd>No. Local open is the default.</dd>
+        <dt>Can hosts open docs users already have?</dt>
+        <dd>Yes — local DOCX, XLSX, PPTX, common ODF and legacy formats, and PDF.</dd>
+        <dt>iOS and Android?</dt>
+        <dd>Yes for v1. Web is planned, not claimed yet.</dd>
+        <dt>Why pay if the code is MIT?</dt>
+        <dd>Paid tiers buy response time and redistribution guidance — not a darker paint path.</dd>
+      </dl>
+    </section>
+
+    <section class="band final" aria-labelledby="final-title">
+      <h2 id="final-title">Add it. Open a file. Stop there.</h2>
+      <p class="section-lede">office_viewer by Leafpane.</p>
+      <p class="cta-row">
+        <a class="btn" href="https://pub.dev/packages/office_viewer">flutter pub add office_viewer</a>
+      </p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Leafpane · <a href="https://github.com/leafpane/office_viewer">GitHub</a> · <a href="https://pub.dev/packages/office_viewer">pub.dev</a></p>
+  </footer>
+
+  <script src="motion.js" defer></script>
+</body>
+</html>
