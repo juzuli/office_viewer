@@ -25,6 +25,11 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
+# Keep monorepo path resolution while engines depend on hosted office_viewer.
+dependency_overrides:
+  office_viewer:
+    path: ../
+
 flutter:
   uses-material-design: true
   assets:
