@@ -1,3 +1,7 @@
+## 0.0.3
+
+* Use absolute GitHub raw image URLs in the README so screenshots render on pub.dev.
+
 ## 0.0.2
 
 * User-friendly README with device screenshots for Word, Excel, PowerPoint, and PDF.

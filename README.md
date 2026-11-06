@@ -6,11 +6,11 @@ Publisher: [Leafpane](https://github.com/juzuli/office_viewer).
 
 | Word | Excel |
 |:----:|:-----:|
-| ![Word](screenshots/word.png) | ![Excel](screenshots/excel.png) |
+| ![Word](https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/word.png) | ![Excel](https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/excel.png) |
 
 | PowerPoint | PDF |
 |:----------:|:---:|
-| ![PowerPoint](screenshots/powerpoint.png) | ![PDF](screenshots/pdf.png) |
+| ![PowerPoint](https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/powerpoint.png) | ![PDF](https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/pdf.png) |
 
 ## Features
 
@@ -24,7 +24,7 @@ Publisher: [Leafpane](https://github.com/juzuli/office_viewer).
 
 | Package | pub.dev | Formats | Notes |
 |---|---|---|---|
-| `office_viewer` | **0.0.2** | — | Viewer API, controller, tiles |
+| `office_viewer` | **0.0.3** | — | Viewer API, controller, tiles |
 | `office_viewer_engine_pdf` | **0.0.1** | PDF | Real rendering via pdfrx |
 | `office_viewer_engine_lok` | Not yet | DOCX / XLSX / PPTX / ODF | Private binary spike; Office-on-pub later |
 
