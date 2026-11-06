@@ -1,3 +1,7 @@
+## 0.0.4
+
+* README: one-row device-width screenshot previews and a Supported / Not supported matrix.
+
 ## 0.0.3
 
 * Use absolute GitHub raw image URLs in the README so screenshots render on pub.dev.

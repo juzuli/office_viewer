@@ -4,13 +4,16 @@ No edit, search, or print.
 
 Publisher: [Leafpane](https://github.com/juzuli/office_viewer).
 
-| Word | Excel |
-|:----:|:-----:|
-| ![Word](https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/word.png) | ![Excel](https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/excel.png) |
+<p align="center">
+  <img src="https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/word.png" width="180" alt="Word (DOCX) device preview" />
+  <img src="https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/excel.png" width="180" alt="Excel (XLSX) device preview" />
+  <img src="https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/powerpoint.png" width="180" alt="PowerPoint (PPTX) device preview" />
+  <img src="https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/pdf.png" width="180" alt="PDF device preview" />
+</p>
 
-| PowerPoint | PDF |
-|:----------:|:---:|
-| ![PowerPoint](https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/powerpoint.png) | ![PDF](https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/pdf.png) |
+<p align="center">
+  <sub>Word · Excel · PowerPoint · PDF — example app on Android</sub>
+</p>
 
 ## Features
 
@@ -20,15 +23,35 @@ Publisher: [Leafpane](https://github.com/juzuli/office_viewer).
 - Pluggable engines via `OfficeEngineRegistry` (first match wins)
 - PDF on pub.dev today via [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) (pdfrx / PDFium)
 
-## Platforms
+## Support
 
-| Package | pub.dev | Formats | Notes |
-|---|---|---|---|
-| `office_viewer` | **0.0.3** | — | Viewer API, controller, tiles |
-| `office_viewer_engine_pdf` | **0.0.1** | PDF | Real rendering via pdfrx |
-| `office_viewer_engine_lok` | Not yet | DOCX / XLSX / PPTX / ODF | Private binary spike; Office-on-pub later |
+What works **now** on pub.dev vs what does not (or only in private builds).
 
-Android and iOS only for now.
+### Supported now
+
+| Area | Status |
+|---|---|
+| Platforms | **Android**, **iOS** |
+| Formats (pub) | **PDF** via [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) |
+| Viewing | Open local bytes/file → tile paint → **pan / pinch zoom / fit-width** |
+| Navigation | Part / page / sheet / slide switching (`goToPart`) |
+| Passwords | Soft-fail + retry with `OpenOptions(password:)` |
+| Host chrome | You own app bar, share, open picker — viewer is paint-only |
+| Packages | `office_viewer` **0.0.4** · `office_viewer_engine_pdf` **0.0.1** |
+
+### Not supported now
+
+| Area | Status |
+|---|---|
+| Edit / search / print / annotations | **Out of scope** — not planned in the viewer |
+| Web / Windows / macOS / Linux | **Not supported** |
+| DOCX / XLSX / PPTX on pub.dev | **Not on pub yet** — needs `office_viewer_engine_lok` (private binary spike) or the planned web engine |
+| Legacy Office (DOC / XLS / PPT) on pub | **Not on pub** — same as above (LOK-only today) |
+| ODF (ODT / ODS / ODP) on pub | **Not on pub** — LOK-only today |
+| Network / cloud open | **Not built-in** — host app downloads, then passes bytes/path |
+| Redistributable Office engine | **Open** — LOK binaries are private-device only; do not ship in store builds from extracted APKs |
+
+Office formats in the screenshots above come from the example app with a private LOK install. Pub consumers get **PDF** today; Office-on-pub comes later.
 
 ## Install
 
@@ -164,9 +187,8 @@ flutter pub get && flutter analyze && flutter test
 
 ## Status / known gaps
 
-- Open + readable tiles for DOCX / XLSX / PPTX / PDF on Android arm64 and iOS arm64
-- Fit-width zoom, pinch, pan clamp, part/sheet switching
-- Soft-fail corrupt/password docs; host passes `OpenOptions(password:)` (example shows a dialog)
+See **Support** above for the user-facing matrix. Contributor notes:
+
 - Memory: viewport-culled sheet tiles; slim iOS resources by default
 - PDF uses pdfrx (LOK excluded) — no LO abort on PDF open
 - Still open: redistribute license + store size; huge-sheet native heap
