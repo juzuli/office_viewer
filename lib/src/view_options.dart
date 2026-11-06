@@ -20,6 +20,7 @@ class OfficeViewOptions {
     this.minZoom = 1.0,
     this.maxZoom = 5.0,
     this.pagePadding = 12.0,
+    this.showPartLabels = false,
   })  : assert(minZoom > 0),
         assert(maxZoom >= minZoom),
         assert(pagePadding >= 0);
@@ -45,6 +46,11 @@ class OfficeViewOptions {
   /// Inset around the page canvas (logical pixels).
   final double pagePadding;
 
+  /// When true, draws the part name / "Page N" / "Sheet N" above each page.
+  /// Hosts that provide their own chrome (prev/next, counters) should leave
+  /// this false (the default).
+  final bool showPartLabels;
+
   OfficeViewOptions copyWith({
     bool? panEnabled,
     bool? zoomEnabled,
@@ -52,6 +58,7 @@ class OfficeViewOptions {
     double? minZoom,
     double? maxZoom,
     double? pagePadding,
+    bool? showPartLabels,
   }) {
     return OfficeViewOptions(
       panEnabled: panEnabled ?? this.panEnabled,
@@ -61,6 +68,7 @@ class OfficeViewOptions {
       minZoom: minZoom ?? this.minZoom,
       maxZoom: maxZoom ?? this.maxZoom,
       pagePadding: pagePadding ?? this.pagePadding,
+      showPartLabels: showPartLabels ?? this.showPartLabels,
     );
   }
 
@@ -72,7 +80,8 @@ class OfficeViewOptions {
       other.doubleTapZoomEnabled == doubleTapZoomEnabled &&
       other.minZoom == minZoom &&
       other.maxZoom == maxZoom &&
-      other.pagePadding == pagePadding;
+      other.pagePadding == pagePadding &&
+      other.showPartLabels == showPartLabels;
 
   @override
   int get hashCode => Object.hash(
@@ -82,5 +91,6 @@ class OfficeViewOptions {
         minZoom,
         maxZoom,
         pagePadding,
+        showPartLabels,
       );
 }

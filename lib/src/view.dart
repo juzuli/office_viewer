@@ -344,6 +344,8 @@ class _ScrollablePartsDocumentState extends State<_ScrollablePartsDocument>
                   viewportW: viewportW,
                   viewportH: pageSlotH,
                   pagePadding: pad,
+                  showPartLabels:
+                      widget.controller.viewOptions.showPartLabels,
                   onEdgeSwipe: (delta) {
                     final target =
                         (i + delta).clamp(0, parts.length - 1).toInt();
@@ -360,6 +362,8 @@ class _ScrollablePartsDocumentState extends State<_ScrollablePartsDocument>
               final needsH = pan && contentW > canvasW + 0.5;
               final needsV = pan && pageH > (pageSlotH - 2 * pad) + 0.5;
 
+              final showLabel =
+                  widget.controller.viewOptions.showPartLabels;
               return SizedBox(
                 width: viewportW,
                 height: pageSlotH,
@@ -368,11 +372,13 @@ class _ScrollablePartsDocumentState extends State<_ScrollablePartsDocument>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        part.name ?? 'Part ${part.index + 1}',
-                        style: Theme.of(context).textTheme.labelMedium,
-                      ),
-                      SizedBox(height: pad > 0 ? 6 : 0),
+                      if (showLabel) ...[
+                        Text(
+                          part.name ?? 'Part ${part.index + 1}',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                        SizedBox(height: pad > 0 ? 6 : 0),
+                      ],
                       Expanded(
                         child: Center(
                           child: SingleChildScrollView(
@@ -425,6 +431,7 @@ class _SheetSnapPage extends StatefulWidget {
     required this.viewportW,
     required this.viewportH,
     required this.pagePadding,
+    this.showPartLabels = false,
     this.onEdgeSwipe,
   });
 
@@ -436,6 +443,7 @@ class _SheetSnapPage extends StatefulWidget {
   final double viewportW;
   final double viewportH;
   final double pagePadding;
+  final bool showPartLabels;
 
   /// Called with `-1` / `+1` when the user flings past the top/bottom edge.
   final ValueChanged<int>? onEdgeSwipe;
@@ -546,11 +554,13 @@ class _SheetSnapPageState extends State<_SheetSnapPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              widget.part.name ?? 'Sheet ${widget.part.index + 1}',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
-            SizedBox(height: pad > 0 ? 6 : 0),
+            if (widget.showPartLabels) ...[
+              Text(
+                widget.part.name ?? 'Sheet ${widget.part.index + 1}',
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+              SizedBox(height: pad > 0 ? 6 : 0),
+            ],
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
