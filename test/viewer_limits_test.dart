@@ -33,4 +33,35 @@ void main() {
     expect(s.width, OfficeViewerLimits.maxSheetExtentPoints);
     expect(s.height, OfficeViewerLimits.maxSheetExtentPoints);
   });
+
+  test('clipTileRegionToPart shrinks last-column / last-row cells', () {
+    // Letter page 612×792 with 256pt tiles → last column is 100pt wide.
+    final lastCol = clipTileRegionToPart(
+      const Rect.fromLTWH(512, 0, 256, 256),
+      const Size(612, 792),
+    );
+    expect(lastCol, const Rect.fromLTWH(512, 0, 100, 256));
+
+    final lastRow = clipTileRegionToPart(
+      const Rect.fromLTWH(0, 768, 256, 256),
+      const Size(612, 792),
+    );
+    expect(lastRow, const Rect.fromLTWH(0, 768, 256, 24));
+
+    final full = clipTileRegionToPart(
+      const Rect.fromLTWH(0, 0, 256, 256),
+      const Size(612, 792),
+    );
+    expect(full, const Rect.fromLTWH(0, 0, 256, 256));
+  });
+
+  test('clampedTileLayoutSize scales clipped content', () {
+    final layout = clampedTileLayoutSize(
+      region: const Rect.fromLTWH(512, 0, 256, 256),
+      partSize: const Size(612, 792),
+      tilePoints: 256,
+      scale: 2,
+    );
+    expect(layout, const Size(200, 512));
+  });
 }

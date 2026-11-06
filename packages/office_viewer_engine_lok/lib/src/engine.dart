@@ -93,18 +93,23 @@ class LokOfficeEngine implements OfficeEngine {
     return done.future;
   }
 
-  Future<void> ensureInitialized() {
+  Future<void> ensureInitialized({bool forceRetry = false}) {
     if (_bindings != null) return Future<void>.value();
-    if (_initFailed) {
+    if (_initFailed && !forceRetry) {
       return Future.error(
           const EngineUnavailableError('LOK init previously failed'));
     }
     if (_starting != null) return _starting!;
 
+    if (forceRetry) {
+      _initFailed = false;
+    }
+
     _starting = () async {
       try {
         final ptr = await _bootstrap.init();
         _bindings = LokBindings.fromOfficePtr(ptr);
+        _initFailed = false;
       } catch (e) {
         _initFailed = true;
         throw EngineUnavailableError('LOK init failed: $e');
@@ -120,7 +125,9 @@ class LokOfficeEngine implements OfficeEngine {
     DocumentSource source, {
     OpenOptions options = const OpenOptions(),
   }) async {
-    await ensureInitialized();
+    // Retry init on each open so a prior missing-resources failure (common on
+    // iOS before LokIosResources is packed) can recover without process restart.
+    await ensureInitialized(forceRetry: _initFailed);
     // Let the loading spinner paint before sync FFI stalls the isolate.
     await Future<void>.delayed(Duration.zero);
     final path = await _materialize(source, options);

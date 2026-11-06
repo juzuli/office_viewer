@@ -83,6 +83,32 @@ List<Rect> computeMountedTileRegions({
   return out;
 }
 
+
+/// Clip a full grid [region] so it does not extend past [partSize].
+///
+/// Tile grids emit full [tilePoints] cells; the last column/row may be shorter.
+/// Engines and layout must use the clipped rect so bitmaps match the
+/// [Positioned] box (avoids [BoxFit.fill] right-edge stretch on PDF).
+Rect clipTileRegionToPart(Rect region, Size partSize) {
+  final right = math.min(region.right, partSize.width);
+  final bottom = math.min(region.bottom, partSize.height);
+  if (right <= region.left || bottom <= region.top) {
+    return Rect.fromLTWH(region.left, region.top, 0, 0);
+  }
+  return Rect.fromLTRB(region.left, region.top, right, bottom);
+}
+
+/// Layout size for a (possibly already clipped) tile [region] at [scale].
+Size clampedTileLayoutSize({
+  required Rect region,
+  required Size partSize,
+  required double tilePoints,
+  required double scale,
+}) {
+  final clipped = clipTileRegionToPart(region, partSize);
+  return Size(clipped.width * scale, clipped.height * scale);
+}
+
 Size clampSheetExtent(Size size) {
   return Size(
     math.min(size.width, OfficeViewerLimits.maxSheetExtentPoints),

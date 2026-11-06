@@ -805,10 +805,11 @@ class _PartView extends StatelessWidget {
     final scale = fit * zoom;
     final width = part.size.width * scale;
     final height = part.size.height * scale;
-    final tilePx = OfficeDocumentView.tilePoints * scale;
     const tp = OfficeDocumentView.tilePoints;
 
     // Cap DPR×zoom so a single tile paint stays under phone memory budgets.
+    // Layout still uses [scale]; aspect-matched tile boxes keep BoxFit.fill
+    // from distorting partial edge tiles when paintScale < scale*dpr.
     final paintScale = math.min(
       scale * dpr,
       part.kind == PartKind.sheet ? 2.0 : 3.0,
@@ -821,23 +822,27 @@ class _PartView extends StatelessWidget {
       visible: visiblePartRegion,
     );
 
-    final tiles = <Widget>[
-      for (final region in regions)
+    final tiles = <Widget>[];
+    for (final region in regions) {
+      final clipped = clipTileRegionToPart(region, part.size);
+      if (clipped.width <= 0 || clipped.height <= 0) continue;
+      tiles.add(
         Positioned(
-          left: region.left * scale,
-          top: region.top * scale,
-          width: tilePx,
-          height: tilePx,
+          left: clipped.left * scale,
+          top: clipped.top * scale,
+          width: clipped.width * scale,
+          height: clipped.height * scale,
           child: _TileView(
             handle: handle,
             request: TileRequest(
               partIndex: part.index,
-              region: region,
+              region: clipped,
               scale: paintScale,
             ),
           ),
         ),
-    ];
+      );
+    }
 
     return SizedBox(
       width: width,
@@ -911,6 +916,13 @@ class _TileViewState extends State<_TileView> {
 
   @override
   Widget build(BuildContext context) {
-    return RawImage(image: _image, fit: BoxFit.fill);
+    // fill is safe when the Positioned box matches content aspect (see
+    // clampedTileLayoutSize). none+topLeft would leave letterboxing if the
+    // engine returned a slightly different pixel size.
+    return RawImage(
+      image: _image,
+      fit: BoxFit.fill,
+      alignment: Alignment.topLeft,
+    );
   }
 }
