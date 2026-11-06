@@ -231,7 +231,10 @@ extern "C" char* office_viewer_lok_ios_get_part_page_rectangles(intptr_t doc) {
     return nullptr;
   }
   try {
-    return DupCString(d->getPartPageRectangles());
+    // CPiOS COKitDocument API uses getWriterPageRectangles() (Writer page
+    // extents). Android LOK C API historically named this getPartPageRectangles;
+    // keep the exported C symbol for Dart FFI, map to the COKit name here.
+    return DupCString(d->getWriterPageRectangles());
   } catch (...) {
     NSLog(@"office_viewer_lok_ios_get_part_page_rectangles: failed");
     return nullptr;
