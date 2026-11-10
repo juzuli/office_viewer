@@ -1,3 +1,8 @@
+## 0.0.6
+
+* Add a minimal publishable PDF `example/` for pub points; move the private LOK host to `example_app/`.
+* Fix `OfficeDocumentController` initializing-formal lint (static analysis INFO).
+
 ## 0.0.5
 
 * README: PDF-first expectations, support matrices, size/memory limits, file-open + password sample, license notes; LOK setup moved to CONTRIBUTING.md.
