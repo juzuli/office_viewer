@@ -2,10 +2,6 @@
 
 * Shorten `pubspec.yaml` description to satisfy pub.dev length limits (60–180 chars).
 
-## 0.0.9
-
-* Shorten `pubspec.yaml` description to satisfy pub.dev length limits (60–180 chars).
-
 ## 0.0.8
 
 * Remove LibreOfficeKit (`office_viewer_engine_lok`); Office uses `office_viewer_engine_dart` only.
