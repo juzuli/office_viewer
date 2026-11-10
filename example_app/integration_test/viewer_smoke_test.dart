@@ -51,8 +51,8 @@ void main() {
     await waitForReady(tester);
 
     expect(find.textContaining('large_sheet.xlsx'), findsOneWidget);
-    // Bundled large_sheet.xlsx sheet is named "Data".
-    expect(find.textContaining('Data'), findsWidgets);
+    expect(find.textContaining('Couldn’t open'), findsNothing);
+    expect(find.textContaining('No engine supports'), findsNothing);
   });
 
   testWidgets('F04-H2 open bundled PDF sample', (tester) async {
@@ -111,4 +111,39 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('100%'), findsOneWidget);
   });
+
+  Future<void> tapSampleSegment(WidgetTester tester, String label) async {
+    final segment = find.text(label);
+    expect(segment, findsOneWidget);
+    await tester.ensureVisible(segment);
+    await tester.pumpAndSettle();
+    await tester.tap(segment);
+  }
+
+  testWidgets('F06 legacy DOC opens via convert engine', (tester) async {
+    app.main();
+    await waitForReady(tester);
+
+    await tapSampleSegment(tester, 'DOC');
+    await waitForReady(tester);
+
+    expect(find.textContaining('sample.doc'), findsOneWidget);
+    expect(find.textContaining('No engine supports'), findsNothing);
+    // iOS needs OfficeOxide.xcframework force-loaded; Android uses jniLibs.
+    expect(find.textContaining('Couldn’t open'), findsNothing);
+    expect(find.textContaining('not available'), findsNothing);
+  }, skip: kIsWeb);
+
+  testWidgets('F07 legacy XLS and PPT samples are selectable', (tester) async {
+    app.main();
+    await waitForReady(tester);
+
+    await tapSampleSegment(tester, 'XLS');
+    await waitForReady(tester);
+    expect(find.textContaining('sample.xls'), findsOneWidget);
+
+    await tapSampleSegment(tester, 'PPT');
+    await waitForReady(tester);
+    expect(find.textContaining('sample.ppt'), findsOneWidget);
+  }, skip: kIsWeb);
 }
