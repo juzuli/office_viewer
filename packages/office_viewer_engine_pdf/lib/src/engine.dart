@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:office_viewer/office_viewer.dart';
 import 'package:pdfrx/pdfrx.dart';
 
-/// PDFium (pdfrx) engine — used for PDF so LOK never loads PDFs
+/// PDFium (pdfrx) engine — register first so Office engines never open PDFs
 /// (avoids hard UNO asserts that abort the process).
 class PdfOfficeEngine implements OfficeEngine {
   @override

@@ -11,5 +11,5 @@ flutter run
 
 Opens bundled `assets/sample.pdf` in `OfficeDocumentView`.
 
-For the full Word / Excel / PowerPoint host (private LibreOfficeKit engine), see
+For the full Word / Excel / PowerPoint host (Dart OOXML engine), see
 [`../example_app/`](../example_app/) and [`../CONTRIBUTING.md`](../CONTRIBUTING.md).

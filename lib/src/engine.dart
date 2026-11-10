@@ -11,9 +11,7 @@ class PartInfo {
     required this.kind,
     required this.size,
     this.name,
-    this.contentOrigin = Offset.zero,
-    int? lokPartIndex,
-  }) : lokPartIndex = lokPartIndex ?? index;
+  });
 
   final int index;
   final PartKind kind;
@@ -24,17 +22,6 @@ class PartInfo {
   /// Size in logical points (1/72 in) at scale 1.0. For sheets this is the
   /// used-area size, which can be very large; that is why rendering is tiled.
   final Size size;
-
-  /// Origin of this page inside the LOK document part (points).
-  ///
-  /// Writer exposes one LOK part but multiple page rectangles via
-  /// `getPartPageRectangles`; each virtual [PartInfo] keeps its page offset
-  /// here so tiles paint the correct page without continuous long-scroll.
-  final Offset contentOrigin;
-
-  /// Argument for LOK `setPart` before painting. Writer virtual pages all
-  /// share LOK part `0`; Impress/Calc use [index].
-  final int lokPartIndex;
 }
 
 /// A request for one rectangle of one part, in part coordinates (points).
@@ -93,8 +80,8 @@ class OpenOptions {
   final int maxBytes;
 }
 
-/// An opened document. Engines may only support one open handle at a time
-/// (LibreOfficeKit is effectively single-threaded); the registry enforces it.
+/// An opened document. Engines may only support one open handle at a time;
+/// the registry enforces it.
 abstract class OfficeDocumentHandle {
   OfficeFormat get format;
   List<PartInfo> get parts;
@@ -103,8 +90,9 @@ abstract class OfficeDocumentHandle {
   Future<void> close();
 }
 
-/// A rendering backend. Implementations: LibreOfficeKit over FFI, a WebView
-/// with bundled JS engines, PDFium, and the in-memory fake used by tests.
+/// A rendering backend. Implementations: the pure Dart OOXML engine
+/// (`office_viewer_engine_dart`), PDFium (`office_viewer_engine_pdf`), and the
+/// in-memory fake used by tests.
 abstract class OfficeEngine {
   String get id;
   bool supports(OfficeFormat format);

@@ -1,3 +1,18 @@
+## 0.0.8
+
+* Remove LibreOfficeKit (`office_viewer_engine_lok`); Office uses `office_viewer_engine_dart` only.
+* **Breaking:** drop LOK-only `PartInfo.contentOrigin` / `PartInfo.lokPartIndex` and `OfficeViewerLimits.lokLoadOptions`.
+* **Breaking:** legacy binary Office (`.doc` / `.xls` / `.ppt`) and OpenDocument are no longer opened — use OOXML (`.docx` / `.xlsx` / `.pptx`) or PDF.
+* Example host registers `PdfOfficeEngine` then `DartOfficeEngine` (no `OFFICE_VIEWER_USE_LOK` toggle).
+* Export `OfficeViewerLimits` from the package barrel for host tile/memory caps.
+
+### Migrating from 0.0.7
+
+1. Remove any dependency on `office_viewer_engine_lok` and stop registering `LokOfficeEngine`.
+2. Register PDF first, then Dart: `..register(PdfOfficeEngine())..register(DartOfficeEngine())`.
+3. Delete uses of `PartInfo.contentOrigin`, `PartInfo.lokPartIndex`, and `OfficeViewerLimits.lokLoadOptions` (tile requests use part-local coordinates only).
+4. Narrow pickers / allowed extensions to formats the Dart + PDF engines support.
+
 ## 0.0.7
 
 * Fix `OfficeDocumentController` constructor: restore public `viewOptions:` named parameter (`this._viewOptions` is illegal / `private_optional_parameter`).

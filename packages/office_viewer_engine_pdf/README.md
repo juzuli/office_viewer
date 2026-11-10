@@ -20,7 +20,7 @@ await controller.load(DocumentSource.bytes(bytes, fileName: 'a.pdf'));
 OfficeDocumentView(controller: controller);
 ```
 
-Register this engine **before** any Office/LOK engine so PDFs never hit the
-native Office stack.
+Register this engine **before** any Office engine so PDFs never hit the
+OOXML stack.
 
 Supports `OfficeFormat.pdf` on **Android and iOS** only.

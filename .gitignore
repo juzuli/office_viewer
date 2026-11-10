@@ -18,10 +18,13 @@ migrate_working_dir/
 *.ipr
 *.iws
 .idea/
+.vscode/
+
+# Local Dart-engine device/spike screenshots
+example_app/spike/dart_engine_shots/
 
 # Analyze scratch dumps
 .ex_analyze.txt
-.lok_analyze.txt
 .root_analyze.txt
 
 # Internal recon / brand notes (not product)
@@ -41,10 +44,6 @@ build/
 coverage/
 **/pubspec.lock
 
-# LOK spike binaries — never commit / never publish
-packages/office_viewer_engine_lok/third_party/
-packages/office_viewer_engine_lok/tool/cache/
-packages/office_viewer_engine_lok/ios/LokIosResources/
 example/ios/.symlinks/
 example/ios/Pods/
 example/android/.gradle/

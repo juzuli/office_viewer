@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# Fast iOS UI iteration — stub plugin (no 375 LO archives, ~seconds not minutes).
-# Uses FakeOfficeEngine. For real LOK tiles use ios_run_lok.sh.
+# Fast iOS UI iteration for example_app (PDF + Dart OOXML).
+# Prefer ./tool/run_dart_engine.sh for the same loop with optional device id.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DEVICE="${1:-}"
-export OFFICE_VIEWER_LINK_LOK_IOS=0
 cd "$ROOT"
 flutter pub get
 (

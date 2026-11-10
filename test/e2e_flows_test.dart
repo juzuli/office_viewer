@@ -1,5 +1,5 @@
 // Host-side flow specs for office_viewer (FakeOfficeEngine).
-// Device LOK cases stay manual / log-driven — see replica/test-plan.md.
+// Device cases stay manual / log-driven — see replica/test-plan.md.
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';

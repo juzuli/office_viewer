@@ -1,9 +1,0 @@
-third_party/
-tool/cache/
-ios/LokIosResources/
-build/
-.dart_tool/
-example/build/
-example/.dart_tool/
-pubspec.lock
-*.bak

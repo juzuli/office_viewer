@@ -1,4 +1,4 @@
-# CPiOS LOK static engine needs iOS 15+ (and file_picker_darwin agrees).
+# Match file_picker_darwin / office_viewer iOS floor.
 platform :ios, '15.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
@@ -44,103 +44,23 @@ post_install do |installer|
     end
   end
 
-  # Persist link preference (ENV wins; else keep existing file; else default ON).
-  pref = File.join(__dir__, '.lok_link_enabled')
-  lok_link = if ENV.key?('OFFICE_VIEWER_LINK_LOK_IOS')
-               ENV['OFFICE_VIEWER_LINK_LOK_IOS'] != '0'
-             elsif File.file?(pref)
-               File.read(pref).strip != '0'
-             else
-               true
-             end
-  File.write(pref, lok_link ? '1' : '0')
-  puts "Podfile: OFFICE_VIEWER_LINK_LOK_IOS → #{lok_link ? 'link' : 'stub/fast'}"
-
-  # COKit $APP_DATA_DIR == NSBundle.mainBundle — services.rdb / share / ICU
-  # must live at Runner.app root. Copy AFTER Flutter's Run Script / Thin Binary
-  # so those steps cannot wipe the tree (running first caused the Flutter
-  # console error: services.rdb: no such file).
+  # Drop legacy LibreOfficeKit iOS copy phase if a prior LOK install left one.
   runner_project_path = File.join(__dir__, 'Runner.xcodeproj')
-  runner_project = Xcodeproj::Project.open(runner_project_path)
-  runner_target = runner_project.targets.find { |t| t.name == 'Runner' }
-  phase_name = 'Copy LokIosResources into app root'
-  if runner_target
-    runner_target.shell_script_build_phases
-                 .select { |p| p.name == phase_name }
-                 .each { |p| p.remove_from_project }
-    phase = runner_target.new_shell_script_build_phase(phase_name)
-    phase.shell_script = <<~'SCRIPT'
-      set -euo pipefail
-      # Fast stub: skip ~400MB resource copy entirely.
-      if [[ -f "${SRCROOT}/.lok_link_enabled" && "$(cat "${SRCROOT}/.lok_link_enabled")" == "0" ]]; then
-        echo "LokIosResources skip (OFFICE_VIEWER_LINK_LOK_IOS=0)"
-        exit 0
-      fi
-      SRC="${SRCROOT}/.symlinks/plugins/office_viewer_engine_lok/ios/LokIosResources"
-      if [[ ! -d "$SRC" ]]; then
-        SRC="${SRCROOT}/../../packages/office_viewer_engine_lok/ios/LokIosResources"
-      fi
-      if [[ ! -d "$SRC" ]]; then
-        echo "note: LokIosResources absent — stub/fast iOS build (no LOK link)"
-        exit 0
-      fi
-      DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
-      mkdir -p "$DEST"
-
-      # Skip when already copied for this configuration (huge win on rebuilds).
-      STAMP_FILE="$DEST/.lok_resources_stamp"
-      SRC_MTIME=$(stat -f '%m' "$SRC/services.rdb" 2>/dev/null || echo 0)
-      CONFIG_TAG="${CONFIGURATION:-Debug}|slim=${OFFICE_VIEWER_IOS_SLIM_RESOURCES:-auto}"
-      WANT_STAMP="${SRC_MTIME}|${CONFIG_TAG}"
-      if [[ -f "$DEST/services.rdb" && -f "$STAMP_FILE" && "$(cat "$STAMP_FILE")" == "$WANT_STAMP" ]]; then
-        echo "LokIosResources skip (unchanged, app=$(du -sh "$DEST" | awk '{print $1}'))"
-        exit 0
-      fi
-
-      # Viewer-only default: drop thesaurus/gallery/spell/fingerprint (~160MB+) —
-      # not needed to open/paint docs. Override with OFFICE_VIEWER_IOS_SLIM_RESOURCES=0.
-      SLIM="${OFFICE_VIEWER_IOS_SLIM_RESOURCES:-1}"
-      EXCLUDES=( --exclude '.DS_Store' --exclude 'ICU.dat' )
-      # Keep icudt*.dat only (ICU.dat is an identical duplicate, +32MB).
-      if [[ "$SLIM" == "1" ]]; then
-        EXCLUDES+=(
-          --exclude 'share/thes/***'
-          --exclude 'share/gallery/***'
-          --exclude 'share/spell/***'
-          --exclude 'share/fingerprint/***'
-          --exclude 'welcome.odt'
-        )
-        echo "LokIosResources: slim viewer copy (no thes/gallery/spell)"
-      fi
-
-      # Never --delete: DEST is the whole .app (would wipe Runner binary).
-      # --copy-links: iOS bundles must not ship resources as symlinks.
-      # Do NOT also copy into the plugin .framework — that doubled install size.
-      rsync -a --copy-links "${EXCLUDES[@]}" "$SRC"/ "$DEST"/
-      # Prefer a real ICU.dat name if only icudt* was copied.
-      if [[ ! -f "$DEST/ICU.dat" ]]; then
-        ICU_SRC=$(ls "$DEST"/icudt*.dat 2>/dev/null | head -1 || true)
-        if [[ -n "${ICU_SRC:-}" ]]; then
-          ln "$ICU_SRC" "$DEST/ICU.dat" 2>/dev/null || cp -c "$ICU_SRC" "$DEST/ICU.dat" 2>/dev/null || cp "$ICU_SRC" "$DEST/ICU.dat"
-        fi
-      fi
-      test -f "$DEST/services.rdb"
-      test -f "$DEST/fundamentalrc"
-      test -f "$DEST/rc"
-      test -f "$DEST/ICU.dat" || test -f "$DEST/icudt78l.dat"
-      printf '%s' "$WANT_STAMP" > "$STAMP_FILE"
-      echo "LokIosResources → app root OK (slim=$SLIM, app=$(du -sh "$DEST" | awk '{print $1}'))"
-    SCRIPT
-    # After Flutter "Run Script" / Resources, but BEFORE "Thin Binary" so
-    # codesign still covers services.rdb / share / ICU.dat.
-    thin_idx = runner_target.build_phases.index { |p|
-      p.respond_to?(:name) && p.name == 'Thin Binary'
-    }
-    if thin_idx
-      runner_target.build_phases.move(phase, thin_idx)
-    else
-      runner_target.build_phases.move(phase, runner_target.build_phases.size - 1)
+  if File.directory?(runner_project_path)
+    runner_project = Xcodeproj::Project.open(runner_project_path)
+    runner_target = runner_project.targets.find { |t| t.name == 'Runner' }
+    if runner_target
+      removed = false
+      runner_target.shell_script_build_phases
+                   .select { |p| p.name == 'Copy LokIosResources into app root' }
+                   .each do |p|
+                     p.remove_from_project
+                     removed = true
+                   end
+      if removed
+        runner_project.save
+        puts 'Podfile: removed legacy LokIosResources build phase'
+      end
     end
-    runner_project.save
   end
 end

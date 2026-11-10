@@ -1,0 +1,31 @@
+name: office_viewer_engine_dart
+description: Pure Dart OOXML engine for office_viewer (DOCX / XLSX / PPTX). MIT-clean, no native binaries.
+version: 0.1.0-dev
+homepage: https://github.com/juzuli/office_viewer
+repository: https://github.com/juzuli/office_viewer
+issue_tracker: https://github.com/juzuli/office_viewer/issues
+
+environment:
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.47.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  office_viewer: ^0.0.8
+  archive: ^4.0.2
+  xml: ^6.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+# Monorepo: resolve core from path while developing.
+dependency_overrides:
+  office_viewer:
+    path: ../..
+
+flutter:
+  assets:
+    - assets/fonts/
