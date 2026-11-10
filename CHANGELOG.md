@@ -1,3 +1,9 @@
+## 0.0.5
+
+* README: PDF-first expectations, support matrices, size/memory limits, file-open + password sample, license notes; LOK setup moved to CONTRIBUTING.md.
+* Raise Flutter (`>=3.47.0`) and Dart (`>=3.12.0`) floors to match `office_viewer_engine_pdf` / pdfrx ^2.5.
+* Declare `platforms: android` and `ios` for pub.dev.
+
 ## 0.0.4
 
 * README: one-row device-width screenshot previews and a Supported / Not supported matrix.

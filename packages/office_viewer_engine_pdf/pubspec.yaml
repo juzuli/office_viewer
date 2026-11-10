@@ -1,6 +1,6 @@
 name: office_viewer_engine_pdf
 description: PDFium-backed PDF engine for office_viewer (pdfrx).
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/juzuli/office_viewer
 repository: https://github.com/juzuli/office_viewer
 issue_tracker: https://github.com/juzuli/office_viewer/issues
