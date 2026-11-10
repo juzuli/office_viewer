@@ -49,20 +49,20 @@ OfficeEngineRegistry.instance
 
 ## Publishing (maintainers)
 
-Order matters — core first, then engines that depend on it:
+Order matters — core first, then engines that depend on it. Prefer:
 
 ```bash
-# 1) office_viewer
-flutter pub publish
-
-# 2) office_viewer_engine_dart (after 0.0.8 is on pub.dev)
-cd packages/office_viewer_engine_dart
-flutter pub publish
-
-# PDF engine is already on pub; bump separately when needed
+./tool/publish.sh
+# dry-run:
+./tool/publish.sh --dry-run
 ```
 
-`pubspec_overrides.yaml` is local-only and is not published.
+The root `.pubignore` excludes `packages/` so the core tarball stays lean. The
+script moves that file aside when publishing `office_viewer_engine_dart` (otherwise
+pub treats the engine pubspec as hidden).
+
+`pubspec_overrides.yaml` is local-only and is not published. PDF engine bumps are
+separate (`packages/office_viewer_engine_pdf`).
 
 ## Known gaps (contributor)
 

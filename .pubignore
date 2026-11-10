@@ -1,9 +1,13 @@
+# Used when publishing `office_viewer` from the repo root.
+# Nested engine publishes must temporarily move this file aside (see tool/publish.sh)
+# because pub also applies this ignore and `packages/` would hide their pubspec.
 packages/
 example_app/
 replica/
 e2e/
 tool/
 website/
+docs/
 build/
 .dart_tool/
 .vscode/
