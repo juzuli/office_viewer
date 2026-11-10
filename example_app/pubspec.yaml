@@ -1,5 +1,5 @@
 name: office_viewer_example
-description: Example / Phase 0 spike harness for office_viewer (+ LOK engine on Android).
+description: Example host for office_viewer (PDF + Dart OOXML engines).
 publish_to: 'none'
 version: 0.1.0
 
@@ -15,8 +15,6 @@ dependencies:
     path: ../
   office_viewer_engine_dart:
     path: ../packages/office_viewer_engine_dart
-  office_viewer_engine_lok:
-    path: ../packages/office_viewer_engine_lok
   office_viewer_engine_pdf:
     path: ../packages/office_viewer_engine_pdf
 

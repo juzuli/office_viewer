@@ -13,7 +13,7 @@ Parse entry: `XlsxParser.parse(PackageReader)` → `XlsxWorkbook.sheets`.
 
 ## Part size
 
-`PartInfo.size` is the **used range** of the sheet in **points** at scale 1.0 (same contract as LOK/PDF engines).
+`PartInfo.size` is the **used range** of the sheet in **points** at scale 1.0 (same contract as PDF / Dart engines).
 
 Computed by `XlsxLayout.partSize(sheet)`:
 

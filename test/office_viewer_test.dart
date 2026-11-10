@@ -9,6 +9,19 @@ void main() {
     expect(OfficeFormat.fromName('noext'), OfficeFormat.unknown);
   });
 
+  test('PartInfo is index/kind/size/name only (no LOK fields)', () {
+    const part = PartInfo(
+      index: 2,
+      kind: PartKind.page,
+      size: Size(100, 200),
+      name: 'Page 3',
+    );
+    expect(part.index, 2);
+    expect(part.kind, PartKind.page);
+    expect(part.size, const Size(100, 200));
+    expect(part.name, 'Page 3');
+  });
+
   test('registry picks first engine that supports the format', () {
     final reg = OfficeEngineRegistry.instance..clear();
     expect(() => reg.pick(OfficeFormat.docx),

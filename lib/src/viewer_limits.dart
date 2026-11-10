@@ -3,7 +3,7 @@ import 'dart:ui';
 
 /// Hard limits for a phone-first Office *viewer* (no edit / search / print).
 ///
-/// Keep native LO and Flutter tile memory predictable on mid-range devices.
+/// Keep Flutter tile memory predictable on mid-range devices.
 abstract final class OfficeViewerLimits {
   /// Max tiles mounted for one part at a time (sheets use viewport cull).
   static const int maxMountedTiles = 24;
@@ -11,23 +11,18 @@ abstract final class OfficeViewerLimits {
   /// Cap device-pixel canvas edge for a single paintTile call.
   static const int maxPaintPx = 1024;
 
-  /// Sheets: never ask LOK for a canvas larger than this (per side).
+  /// Sheets: never ask the engine for a canvas larger than this (per side).
   static const int maxSheetPaintPx = 768;
 
   /// Probe at most this many parts for size/name (huge PDFs / decks).
   static const int maxPartProbe = 48;
 
   /// Soft-cap reported sheet extent so tile grids stay finite.
-  /// Content beyond remains in the LO model but is not scrolled/painted.
+  /// Content beyond is not scrolled/painted.
   static const double maxSheetExtentPoints = 24000;
 
   /// Default open size guard (~50 MB) — enough for typical office files.
   static const int defaultMaxBytes = 50 * 1024 * 1024;
-
-  /// Read-only + macros-off options for LOK `documentLoadWithOptions`.
-  static const String lokLoadOptions =
-      '{"ReadOnly":{"type":"boolean","value":"true"},'
-      '"MacroExecutionMode":{"type":"long","value":"0"}}';
 }
 
 /// Compute tile rectangles to mount for [partSize].

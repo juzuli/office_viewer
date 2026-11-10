@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
-# Fast iOS UI iteration — stub plugin (no 375 LO archives, ~seconds not minutes).
-# Still registers DartOfficeEngine for Office if you pass
-#   --dart-define=OFFICE_VIEWER_USE_LOK=false
-# Prefer ./tool/run_dart_engine.sh for a Dart-only Office loop.
-# For real LOK tiles use ios_run_lok.sh.
+# Fast iOS UI iteration for example_app (PDF + Dart OOXML).
+# Prefer ./tool/run_dart_engine.sh for the same loop with optional device id.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DEVICE="${1:-}"
-export OFFICE_VIEWER_LINK_LOK_IOS=0
 cd "$ROOT"
 flutter pub get
 (

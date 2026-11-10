@@ -2,6 +2,7 @@
 
 ## 0.1.0-dev
 
+- Sole Office engine after removal of LibreOfficeKit (`office_viewer_engine_lok`).
 - Fix OPC absolute relationship targets for XLSX (`Target="/xl/..."`).
 - Initial pure Dart OOXML engine for DOCX / XLSX / PPTX.
 - OPC reader with zip-bomb guards and typed soft-fail errors.
@@ -10,4 +11,4 @@
 - DOCX: styles/numbering, flow pagination, tables, inline/anchor images (basic).
 - Bundled OFL fonts (Liberation, Carlito, Caladea).
 - Chart painter for cached-value bar/line/pie (placeholder otherwise).
-- ResourceLimits + fuzz unit tests; fidelity threshold stubs vs LOK.
+- ResourceLimits + fuzz unit tests; fidelity threshold stubs.

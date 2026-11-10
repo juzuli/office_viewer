@@ -12,7 +12,7 @@ Existing types cover the Dart engine:
 - `OfficeEngine` / `OfficeDocumentHandle` / `TileRequest` / `RenderedTile`
 - `ResourceLimitError` for budgets
 - `PasswordRequiredError` for encrypted OOXML
-- Registry first-match order for LOK-over-Dart priority
+- Registry first-match order (PDF then Dart)
 
 ## Possible future proposals (not accepted)
 

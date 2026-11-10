@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-/// Geometry in points (1/72 inch), aligned with LOK / PDF tooling.
+/// Geometry in points (1/72 inch), aligned with PDF / viewer tooling.
 class PointD {
   const PointD(this.x, this.y);
   final double x;

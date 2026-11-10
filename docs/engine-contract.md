@@ -1,7 +1,7 @@
 # Engine contract (from real code)
 
 Derived from `lib/src/*.dart`, `packages/office_viewer_engine_pdf`, and
-`packages/office_viewer_engine_lok`. Do not invent APIs that conflict with this.
+`packages/office_viewer_engine_dart`. Do not invent APIs that conflict with this.
 
 ## `OfficeEngine`
 
@@ -17,9 +17,9 @@ abstract class OfficeEngine {
 ```
 
 - Hosts register engines on `OfficeEngineRegistry.instance` (first match wins).
-- `id`: stable short string (`pdf`, `lok`, planned `dart`).
-- `supports`: format gate; PDF engine returns false on web; LOK returns false for
-  `pdf` / `unknown` / web and true for other formats on Android/iOS.
+- `id`: stable short string (`pdf`, `dart`).
+- `supports`: format gate; PDF engine returns false on web; Dart returns true for
+  `docx` / `xlsx` / `pptx` on Android/iOS and false on web.
 
 ## `OfficeDocumentHandle`
 
@@ -34,7 +34,7 @@ abstract class OfficeDocumentHandle {
 ```
 
 - `parts` must be known after `open` (sizes in logical points).
-- `search` is stubbed (`[]`) in PDF and LOK today; Dart engine may also return `[]`.
+- `search` is stubbed (`[]`) in PDF and Dart today.
 - Controller closes the previous handle before opening a new one.
 
 ## `PartInfo`
@@ -44,15 +44,11 @@ class PartInfo {
   final int index;
   final PartKind kind; // page | sheet | slide
   final String? name;
-  final Size size;           // points @ scale 1.0
-  final Offset contentOrigin; // Writer virtual-page offset (LOK)
-  final int lokPartIndex;     // LOK setPart index
+  final Size size; // points @ scale 1.0
 }
 ```
 
 - Size units: **points** (1/72 in). Sheets may be huge; view tiles them.
-- LOK Writer: multiple virtual pages share `lokPartIndex: 0` with different
-  `contentOrigin`. Pure Dart does not need LOK fields; leave defaults.
 
 ## `TileRequest` / `RenderedTile`
 
@@ -113,7 +109,7 @@ OfficeEngineRegistry.instance
   ..register(...); // first supports(format) wins
 ```
 
-No numeric priority API.
+No numeric priority API. Registration order: **PDF → Dart**.
 
 ## How PDF implements it
 
@@ -121,18 +117,10 @@ No numeric priority API.
 - `renderTile` maps region×scale → partial page render; BGRA→premul RGBA.
 - Password → `PasswordRequiredError`; oversize → `ResourceLimitError`.
 
-## How LOK implements it
+## How Dart implements it
 
-- Materialize bytes to temp file; `documentLoad` with read-only JSON options.
-- Parts: Writer page rectangles → virtual pages; sheets/slides → `getDocumentSize`
-  (twips÷20 → points); sheets clamped to `maxSheetExtentPoints`.
-- `renderTile` rewrites `partIndex`→`lokPartIndex` and shifts region by
-  `contentOrigin`; paints in twips; BGRA→RGBA when needed.
-- All FFI serialized on root isolate.
-
-## Implications for `DartOfficeEngine`
-
-- Implement the same tile RGBA contract; ignore `contentOrigin`/`lokPartIndex`
-  unless useful for internal paging.
-- Use `ResourceLimitError` for limit breaches (already in core).
-- Registration order: PDF → LOK (optional) → Dart.
+- OPC/zip read with size and decompression guards; sniff DOCX / XLSX / PPTX.
+- Build display lists per part; `renderTile` paints the clipped region to RGBA.
+- Encrypted OOXML → `PasswordRequiredError` (no decrypt in v1).
+- Legacy binary Office → `UnsupportedFormatError`.
+- Use `ResourceLimitError` for limit breaches.

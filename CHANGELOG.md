@@ -1,3 +1,8 @@
+## 0.0.8
+
+* Remove LibreOfficeKit (`office_viewer_engine_lok`); Office uses `office_viewer_engine_dart` only.
+* **Breaking:** drop LOK-only `PartInfo.contentOrigin` / `PartInfo.lokPartIndex` and `OfficeViewerLimits.lokLoadOptions`.
+
 ## 0.0.7
 
 * Fix `OfficeDocumentController` constructor: restore public `viewOptions:` named parameter (`this._viewOptions` is illegal / `private_optional_parameter`).

@@ -6,46 +6,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:office_viewer/office_viewer.dart';
 import 'package:office_viewer_engine_dart/office_viewer_engine_dart.dart';
-import 'package:office_viewer_engine_lok/office_viewer_engine_lok.dart';
 import 'package:office_viewer_engine_pdf/office_viewer_engine_pdf.dart';
 
 import 'leafpane_theme.dart';
-
-/// When false, skip LOK so DOCX/XLSX/PPTX use [DartOfficeEngine].
-///
-/// ```sh
-/// flutter run --dart-define=OFFICE_VIEWER_USE_LOK=false
-/// # or: example_app/tool/run_dart_engine.sh
-/// ```
-const bool kUseLokEngine =
-    bool.fromEnvironment('OFFICE_VIEWER_USE_LOK', defaultValue: true);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final registry = OfficeEngineRegistry.instance..clear();
-  // PDF first (pdfrx) so LOK never opens PDFs.
+  // PDF first (pdfrx), then Dart OOXML for DOCX / XLSX / PPTX.
   if (!kIsWeb) {
-    registry.register(PdfOfficeEngine());
-  }
-  final useLok = kUseLokEngine &&
-      !kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS);
-  if (useLok) {
-    // High-fidelity private engine wins for Office when registered before Dart.
-    registry.register(LokOfficeEngine());
-  }
-  if (!kIsWeb) {
-    // Pub-safe OOXML fallback (and primary Office path without LOK).
-    registry.register(DartOfficeEngine());
+    registry
+      ..register(PdfOfficeEngine())
+      ..register(DartOfficeEngine());
   } else {
     registry.register(FakeOfficeEngine(partCount: 3, kind: PartKind.page));
   }
-  debugPrint(
-    'office_viewer engines: '
-    '${useLok ? "pdf+lok+dart" : "pdf+dart (LOK off)"}',
-  );
+  debugPrint('office_viewer engines: pdf+dart');
   runApp(const OfficeViewerExampleApp());
 }
 
@@ -79,18 +56,11 @@ class _ViewerPageState extends State<ViewerPage> {
   String? _status;
   bool _busy = false;
 
+  // Match engines registered in main(): Dart OOXML + PDF.
   static const _officeExtensions = [
     'docx',
-    'doc',
-    'odt',
-    'rtf',
     'xlsx',
-    'xls',
-    'ods',
-    'csv',
     'pptx',
-    'ppt',
-    'odp',
     'pdf',
   ];
 

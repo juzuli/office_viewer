@@ -3,7 +3,7 @@
 Pure Dart OOXML engine for [`office_viewer`](https://pub.dev/packages/office_viewer):
 **DOCX / XLSX / PPTX** on Android and iOS without native binaries.
 
-MIT-licensed. Register after PDF (and after private LOK when installed so LOK wins).
+MIT-licensed. Register after PDF.
 
 ## Register
 
@@ -11,7 +11,6 @@ MIT-licensed. Register after PDF (and after private LOK when installed so LOK wi
 OfficeEngineRegistry.instance
   ..clear()
   ..register(PdfOfficeEngine())
-  // ..register(LokOfficeEngine()) // optional private high-fidelity
   ..register(DartOfficeEngine());
 ```
 
@@ -30,11 +29,6 @@ OfficeEngineRegistry.instance
 - Password-protected OOXML → `PasswordRequiredError` (no decrypt in v1).
 - Legacy `.doc` / `.xls` / `.ppt` → `UnsupportedFormatError`.
 - Web/desktop not promised (code is mostly platform-neutral).
-
-## Relation to LOK
-
-Private LibreOfficeKit remains the high-fidelity reference. This package is the
-**pub-safe** Office tier. When both are registered, put LOK first.
 
 ## License
 
