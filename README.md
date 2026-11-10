@@ -1,7 +1,7 @@
 A Flutter package to view **PDF, Word, Excel, and PowerPoint** documents on Android and iOS.
 
 > [!IMPORTANT]
-> Install the core viewer plus engines from pub.dev: [`office_viewer`](https://pub.dev/packages/office_viewer), [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) (PDF), [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart) (DOCX / XLSX / PPTX), and optionally [`office_viewer_engine_convert`](packages/office_viewer_engine_convert) (DOC / XLS / PPT → OOXML, view-only). Register **PDF → Convert (optional) → Dart**.
+> Install the core viewer plus engines from pub.dev: [`office_viewer`](https://pub.dev/packages/office_viewer), [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) (PDF), [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart) (DOCX / XLSX / PPTX), and optionally [`office_viewer_engine_convert`](https://pub.dev/packages/office_viewer_engine_convert) (DOC / XLS / PPT → OOXML, view-only). Register **PDF → Convert (optional) → Dart**.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/word.png" width="180" alt="Word (DOCX) device preview" />
@@ -11,7 +11,7 @@ A Flutter package to view **PDF, Word, Excel, and PowerPoint** documents on Andr
 </p>
 
 <p align="center">
-  <sub>Example app on Android — PDF via pdfrx, Office via the pure Dart OOXML engine.</sub>
+  <sub>Example app on Android — PDF via pdfrx; OOXML via Dart; optional DOC/XLS/PPT via convert.</sub>
 </p>
 
 ## Features
@@ -22,7 +22,7 @@ A Flutter package to view **PDF, Word, Excel, and PowerPoint** documents on Andr
 - Pluggable engines via `OfficeEngineRegistry` (first match wins)
 - PDF via [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) (pdfrx / PDFium)
 - DOCX / XLSX / PPTX via [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart) (pure Dart OOXML, no native Office binaries)
-- Optional DOC / XLS / PPT via [`office_viewer_engine_convert`](packages/office_viewer_engine_convert) (Office Oxide FFI → temp OOXML → Dart engine; never overwrites the source file)
+- Optional DOC / XLS / PPT via [`office_viewer_engine_convert`](https://pub.dev/packages/office_viewer_engine_convert) (Office Oxide FFI → temp OOXML → Dart engine; never overwrites the source file)
 
 ## Requirements
 
@@ -267,10 +267,10 @@ OfficeEngineRegistry.instance
    - `OfficeViewerLimits.lokLoadOptions`
 4. For legacy `.doc` / `.xls` / `.ppt`, add `office_viewer_engine_convert` and register it between PDF and Dart. OpenDocument is still unsupported.
 
-See [CHANGELOG.md](CHANGELOG.md) `0.0.8` / `0.0.9` for the full notes.
+See [CHANGELOG.md](CHANGELOG.md) `0.0.8` / `0.0.10` for the full notes.
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
 
-The packages (`office_viewer`, `office_viewer_engine_pdf`, and `office_viewer_engine_dart`) are MIT. Contributor setup: [CONTRIBUTING.md](CONTRIBUTING.md).
+The packages (`office_viewer`, `office_viewer_engine_pdf`, `office_viewer_engine_dart`, and `office_viewer_engine_convert`) are MIT (convert ships Office Oxide natives under MIT OR Apache-2.0). Contributor setup: [CONTRIBUTING.md](CONTRIBUTING.md).
