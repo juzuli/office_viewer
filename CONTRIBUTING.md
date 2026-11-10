@@ -21,11 +21,11 @@ cd packages/office_viewer_engine_lok
 ./tool/verify_lok_symbols.sh third_party/lok
 # optional: export LOK_HOME=/path/to/lok
 
-cd ../../example
+cd ../../example_app
 flutter run -d <android-arm64>
 ```
 
-Record metrics in [`example/spike/phase0_notes.md`](example/spike/phase0_notes.md).
+Record metrics in [`example_app/spike/phase0_notes.md`](example_app/spike/phase0_notes.md).
 Extracted libs are for **private devices only** — do not redistribute.
 
 Prefer a F-Droid **viewer** APK (not a full mobile suite APK) for C LOK / JNI
@@ -35,7 +35,7 @@ kit symbols; `fetch_viewer_apk.sh` pins the package id. Verify with
 ### iOS
 
 No IPA extract shortcut. Feasibility notes:
-[`example/spike/ios_feasibility.md`](example/spike/ios_feasibility.md).
+[`example_app/spike/ios_feasibility.md`](example_app/spike/ios_feasibility.md).
 Plugin uses a stub (`ios_lok_not_built`) until a self-built static engine is
 installed via `packages/office_viewer_engine_lok/tool/install_lok_home_ios.sh`.
 Once installed, plain `flutter run` on a device links LOK (no dart-define).

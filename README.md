@@ -32,7 +32,7 @@ Required for the recommended install (`office_viewer` + `office_viewer_engine_pd
 | Dart | `>=3.12.0 <4.0.0` |
 | Platforms | **Android** and **iOS** only |
 | Android `minSdk` | Flutter default (`flutter.minSdkVersion`, typically 21+) |
-| iOS deployment target | **15.0+** (see `example/`) |
+| iOS deployment target | **15.0+** (see `example_app/`) |
 
 ## Support
 
@@ -190,7 +190,7 @@ await controller.load(
 Packages: [`office_viewer`](https://pub.dev/packages/office_viewer) ·
 [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf)
 
-See the runnable host in [`example/`](example/). Issues: [github.com/juzuli/office_viewer/issues](https://github.com/juzuli/office_viewer/issues).
+See the minimal PDF sample in [`example/`](example/) and the full (private LOK) host in [`example_app/`](example_app/). Issues: [github.com/juzuli/office_viewer/issues](https://github.com/juzuli/office_viewer/issues).
 
 ## Controller and view options
 

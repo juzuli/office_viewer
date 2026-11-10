@@ -1,27 +1,15 @@
-# Leafpane example
+# office_viewer example
 
-Demo host for Leafpane’s [`office_viewer`](../) package — Word, Excel,
-PowerPoint, and PDF on Android and iOS. Suitable for pub.dev listing screenshots.
-
-## Prerequisites (native Office engine)
+Minimal **PDF** host for [`office_viewer`](https://pub.dev/packages/office_viewer) +
+[`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf).
 
 ```bash
-cd ../packages/office_viewer_engine_lok
-./tool/fetch_viewer_apk.sh
-./tool/install_lok_home.sh tool/cache/*-arm64.apk
-# iOS (after a CPiOS engine build):
-./tool/install_lok_home_ios.sh
-```
-
-## Run
-
-```bash
+cd example
 flutter pub get
-flutter run -d <android-arm64>   # or an iPhone
+flutter run
 ```
 
-Tap **Word / Excel / PowerPoint / PDF** for bundled samples, or **Open** for a
-file on the device.
+Opens bundled `assets/sample.pdf` in `OfficeDocumentView`.
 
-Bundled samples: `sample.docx`, `large_sheet.xlsx`, `sample_deck.pptx`,
-`sample.pdf` — see [`assets/SAMPLES.md`](assets/SAMPLES.md).
+For the full Word / Excel / PowerPoint host (private LibreOfficeKit engine), see
+[`../example_app/`](../example_app/) and [`../CONTRIBUTING.md`](../CONTRIBUTING.md).
