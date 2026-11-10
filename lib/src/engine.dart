@@ -103,8 +103,9 @@ abstract class OfficeDocumentHandle {
   Future<void> close();
 }
 
-/// A rendering backend. Implementations: LibreOfficeKit over FFI, a WebView
-/// with bundled JS engines, PDFium, and the in-memory fake used by tests.
+/// A rendering backend. Implementations: LibreOfficeKit over FFI, the pure
+/// Dart OOXML engine (`office_viewer_engine_dart`), PDFium, and the in-memory
+/// fake used by tests.
 abstract class OfficeEngine {
   String get id;
   bool supports(OfficeFormat format);

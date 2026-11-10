@@ -75,7 +75,7 @@ The screenshots above use our example host. PDF still uses the pub PDF engine; W
 
 ## Coming next
 
-- Word / Excel / PowerPoint on **pub.dev** (no private engine install) via a planned WebView-based engine — expected to be **lower fidelity** than the private LOK engine shown in the screenshots (fonts, layout, and page/sheet concepts)
+- Word / Excel / PowerPoint on **pub.dev** via [`office_viewer_engine_dart`](packages/office_viewer_engine_dart) (pure Dart OOXML; MIT-clean, no native binaries) — lower fidelity than the private LOK engine, good enough for typical decks/sheets/linear docs
 - More platforms (Web first, then desktop)
 - Broader file-type coverage once the pub Office path lands
 
@@ -243,7 +243,7 @@ OfficeDocumentView(controller: controller);
 |---|---|---|
 | `office_viewer_engine_pdf` | pdf | PDFium via pdfrx. Register **first**. Pub-ready. |
 | `office_viewer_engine_lok` | docx/xlsx/pptx/doc/xls/ppt/odf | LibreOfficeKit (**LOK**) tiles — not PDF. Private binaries; not on pub yet. See [CONTRIBUTING.md](CONTRIBUTING.md). |
-| *(planned)* WebView Office engine | docx/xlsx/pptx | Not a published package yet. Pub-safe Office path; lower fidelity than LOK. |
+| `office_viewer_engine_dart` | docx/xlsx/pptx | Pure Dart OOXML. Pub-safe Office path; lower fidelity than LOK. Register **after** LOK when both are present. |
 
 ## Concepts
 
