@@ -1,0 +1,40 @@
+name: office_viewer_engine_convert
+description: >
+  Optional legacy Office convert engine for office_viewer (DOC/XLS/PPT →
+  DOCX/XLSX/PPTX via Office Oxide FFI, then Dart OOXML tiles). View-only;
+  never overwrites the source file.
+version: 0.1.0
+homepage: https://github.com/juzuli/office_viewer
+repository: https://github.com/juzuli/office_viewer
+issue_tracker: https://github.com/juzuli/office_viewer/issues
+
+environment:
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.47.0"
+
+platforms:
+  android:
+  ios:
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ffi: ^2.1.4
+  path: ^1.9.1
+  office_viewer: ^0.0.8
+  office_viewer_engine_dart: ^0.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        ffiPlugin: true
+      # iOS: dynamic OfficeOxide.xcframework from tool/build_ios_oxide.sh;
+      # Dart opens OfficeOxide.framework/OfficeOxide.
+      ios:
+        ffiPlugin: true

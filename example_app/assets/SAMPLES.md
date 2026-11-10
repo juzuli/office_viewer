@@ -10,6 +10,9 @@ content is chosen for styles, tables, images, and charts.
 | `large_sheet.xlsx` | [Testaroo embedded-charts.xlsx](https://www.testaroo.com/files/documents/excel/embedded-charts.xlsx) | Sheet `Data` with a table plus native bar and line charts | Demo/test fixture from Testaroo / Novus examples |
 | `sample_deck.pptx` | [SampleLib sample-presentation.pptx](https://samplelib.com/ppt/sample-presentation.pptx) | 8 slides: lists, table, chart, image | SampleLib — free test files, no licensing restrictions stated |
 | `sample.pdf` | [PDFKit kitchen-sink.pdf](https://pdfkit.org/examples/kitchen-sink.pdf) | Embedded fonts, PNG/JPEG, vector graphics, wrapped styled text | PDFKit example (MIT project) |
+| `sample.doc` | [Apache POI SampleDoc.doc](https://github.com/apache/poi) | Legacy Word binary for convert-then-view | Apache License 2.0 |
+| `sample.xls` | [Apache POI SampleSS.xls](https://github.com/apache/poi) | Legacy Excel binary for convert-then-view | Apache License 2.0 |
+| `sample.ppt` | [Apache POI pictures.ppt](https://github.com/apache/poi) | Legacy PowerPoint binary for convert-then-view | Apache License 2.0 |
 
 Re-fetch:
 

@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   office_viewer:
     path: ../
+  office_viewer_engine_convert:
+    path: ../packages/office_viewer_engine_convert
   office_viewer_engine_dart:
     path: ../packages/office_viewer_engine_dart
   office_viewer_engine_pdf:
@@ -25,10 +27,15 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
-# Keep monorepo path resolution while engines depend on hosted office_viewer.
+# Keep monorepo path resolution while engines depend on hosted packages.
 dependency_overrides:
   office_viewer:
     path: ../
+  office_viewer_engine_dart:
+    path: ../packages/office_viewer_engine_dart
+  office_viewer_engine_convert:
+    path: ../packages/office_viewer_engine_convert
+
 
 flutter:
   uses-material-design: true
@@ -38,3 +45,6 @@ flutter:
     - assets/large_sheet.xlsx
     - assets/sample_deck.pptx
     - assets/sample.pdf
+    - assets/sample.doc
+    - assets/sample.xls
+    - assets/sample.ppt

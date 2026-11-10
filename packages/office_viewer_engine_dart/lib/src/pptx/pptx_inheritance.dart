@@ -143,8 +143,18 @@ class PptxInheritance {
       final levelStyle = isBody ? masterStyles.levelForBody(level) : null;
       final levelRun = levelStyle?.run ?? masterRun;
       final levelAlign = levelStyle?.align ?? masterAlign;
-      final bullet = isBody ? (levelStyle?.bullet ?? masterStyles.bodyBullet) : null;
-      final indentLeft = isBody && para.style.indentLeftPt == 0
+      final rawText = para.runs.map((r) => r.text).join();
+      // Only inherit bullets from a real master bodyStyle. Converted PPT often
+      // ships an empty master; inventing "•" then doubles Oxide's literal "*".
+      final inheritedBullet = isBody && masterStyles.parsedBodyStyle
+          ? (levelStyle?.bullet ?? masterStyles.bodyBullet)
+          : null;
+      final bullet = _shouldPaintBullet(rawText, inheritedBullet)
+          ? inheritedBullet
+          : null;
+      final indentLeft = isBody &&
+              para.style.indentLeftPt == 0 &&
+              masterStyles.parsedBodyStyle
           ? (levelStyle?.marginLeftPt ?? 0)
           : para.style.indentLeftPt;
 
@@ -197,6 +207,16 @@ class PptxInheritance {
   bool _paraHasNonDefaultAlign(PptxParagraph para) {
     // Parser defaults to left when algn is absent; treat left as inheritable.
     return para.style.alignment != TextAlign.left;
+  }
+
+  /// Skip prefixing a bullet when the paragraph text is already just a bullet glyph
+  /// (common in poor convert output that emits literal `*` paragraphs).
+  static bool _shouldPaintBullet(String rawText, String? bullet) {
+    if (bullet == null || bullet.isEmpty) return false;
+    final t = rawText.trim();
+    if (t.isEmpty) return false;
+    const literalBullets = {'*', '•', '–', '-', '·', '○', '●'};
+    return !literalBullets.contains(t);
   }
 
   ComputedRunStyle _mergeRunStyle(

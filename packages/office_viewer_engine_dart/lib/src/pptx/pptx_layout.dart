@@ -4,6 +4,7 @@ import '../drawing/charts/chart_painter.dart';
 import '../drawing/shapes.dart';
 import '../fonts/font_registry.dart';
 import '../model/display_list.dart';
+import '../model/style.dart';
 import '../pptx/preset_geometry/presets.dart';
 import '../theme/theme.dart';
 import 'pptx_inheritance.dart';
@@ -172,50 +173,99 @@ class PptxLayout {
       final contentParas = body.paragraphs
           .where((p) => p.runs.map((r) => r.text).join().trim().isNotEmpty)
           .toList();
-      final lineHeights = contentParas
-          .map((p) => (p.runs.isNotEmpty ? p.runs.first.style.fontSizePt : 18) *
-              1.3)
-          .toList();
-      final totalH = lineHeights.fold<double>(0, (a, b) => a + b);
+      final textWidth =
+          xfrm.width > 8 ? xfrm.width - 8 : xfrm.width.clamp(1.0, xfrm.width);
+
+      // Pre-measure so wrapped / multi-line paras don't stamp over the next
+      // bullet (legacy convert often emits long body lines).
+      final measured = <({String text, double indent, double height, PptxParagraph para})>[];
+      for (final para in contentParas) {
+        final raw = para.runs.map((r) => r.text).join();
+        final bullet = para.bullet;
+        final text = (bullet != null && bullet.isNotEmpty) ? '$bullet  $raw' : raw;
+        final indent = para.style.indentLeftPt > 0
+            ? para.style.indentLeftPt
+            : (bullet != null ? 12.0 : 4.0);
+        final runStyle = para.runs.first.style;
+        final maxW = (textWidth - indent).clamp(1.0, textWidth);
+        final height = _measureTextHeight(
+          text: text,
+          maxWidth: maxW,
+          style: runStyle,
+          align: para.style.alignment,
+        );
+        measured.add((text: text, indent: indent, height: height, para: para));
+      }
+
+      final totalH = measured.fold<double>(0, (a, m) => a + m.height);
       final centerVertically = _isTitleLike(shape.placeholderType);
       final topPad = centerVertically ? ((xfrm.height - totalH) / 2) : 8.0;
       var y = topPad.isFinite && topPad > 4 ? topPad : 4.0;
       if (y > xfrm.height) y = 4.0;
-      final textWidth =
-          xfrm.width > 8 ? xfrm.width - 8 : xfrm.width.clamp(1.0, xfrm.width);
-      for (var i = 0; i < contentParas.length; i++) {
-        final para = contentParas[i];
-        final raw = para.runs.map((r) => r.text).join();
-        final bullet = para.bullet;
-        final text = (bullet != null && bullet.isNotEmpty)
-            ? '$bullet  $raw'
-            : raw;
-        final runStyle = para.runs.first.style;
-        final lineH = lineHeights[i];
-        final indent = para.style.indentLeftPt > 0
-            ? para.style.indentLeftPt
-            : (bullet != null ? 12.0 : 4.0);
+
+      // Keep overflow from painting into shapes below this text frame.
+      ops.add(PushClipOp(Rect.fromLTWH(0, 0, xfrm.width, xfrm.height)));
+      for (final m in measured) {
+        if (y >= xfrm.height) break;
+        final runStyle = m.para.runs.first.style;
+        final boxH = m.height.clamp(1.0, (xfrm.height - y).clamp(1.0, xfrm.height));
         final box = Rect.fromLTWH(
-          indent,
+          m.indent,
           y,
-          (textWidth - indent).clamp(1.0, textWidth),
-          lineH,
+          (textWidth - m.indent).clamp(1.0, textWidth),
+          boxH,
         );
         ops.add(DrawTextRawOp(
-          text: text,
+          text: m.text,
           box: box,
           fontFamily: FontRegistry.instance.familyFor(runStyle.fontFamily),
           fontSizePt: runStyle.fontSizePt,
           bold: runStyle.bold,
           italic: runStyle.italic,
           color: runStyle.color,
-          align: para.style.alignment,
+          align: m.para.style.alignment,
         ));
-        y += lineH;
+        y += m.height;
       }
+      ops.add(const PopClipOp());
     }
 
     ops.add(const PopTransformOp());
+  }
+
+  /// Layout height matching [DisplayListPainter] so wrap/LF advance correctly.
+  double _measureTextHeight({
+    required String text,
+    required double maxWidth,
+    required ComputedRunStyle style,
+    required TextAlign align,
+  }) {
+    final family = FontRegistry.instance.familyFor(style.fontFamily);
+    final fontSize = style.fontSizePt <= 0 ? 18.0 : style.fontSizePt;
+    final builder = ParagraphBuilder(
+      ParagraphStyle(
+        textAlign: align,
+        fontFamily: family,
+        fontSize: fontSize,
+        fontWeight: style.bold ? FontWeight.w700 : FontWeight.w400,
+        fontStyle: style.italic ? FontStyle.italic : FontStyle.normal,
+      ),
+    )
+      ..pushStyle(
+        TextStyle(
+          color: style.color,
+          fontFamily: family,
+          fontSize: fontSize,
+          fontWeight: style.bold ? FontWeight.w700 : FontWeight.w400,
+          fontStyle: style.italic ? FontStyle.italic : FontStyle.normal,
+        ),
+      )
+      ..addText(text.isEmpty ? ' ' : text);
+    final paragraph = builder.build()
+      ..layout(ParagraphConstraints(width: maxWidth.clamp(1.0, double.infinity)));
+    // Small gap between paragraphs; never less than ~1.15 line.
+    final minH = fontSize * 1.15;
+    return paragraph.height < minH ? minH : paragraph.height + fontSize * 0.15;
   }
 
   bool _isTitleLike(String? type) =>
@@ -224,6 +274,7 @@ class PptxLayout {
   void _emitTable(List<DisplayOp> ops, PptxTable table, OfficeTheme theme) {
     final xfrm = table.transform;
     if (xfrm.width <= 0 || xfrm.height <= 0) return;
+    if (table.rows.isEmpty) return;
 
     final accent = theme.colorScheme.accent1;
     final headerFill = accent;
@@ -234,12 +285,34 @@ class PptxLayout {
         ? const Color(0xFFFFFFFF)
         : const Color(0xFFB0B0B0);
 
+    // Scale grid to the graphicFrame so tables sit in the slide frame
+    // instead of painting at absolute EMU sizes that look over-zoomed.
+    final colCount = table.rows
+        .map((r) => r.cells.length)
+        .fold<int>(0, (m, n) => n > m ? n : m);
+    final rawCols = <double>[
+      for (var c = 0; c < colCount; c++)
+        c < table.columnWidthsPt.length && table.columnWidthsPt[c] > 0
+            ? table.columnWidthsPt[c]
+            : (xfrm.width / (colCount == 0 ? 1 : colCount)),
+    ];
+    final rawRows = <double>[
+      for (final row in table.rows)
+        row.heightPt > 0 ? row.heightPt : 24.0,
+    ];
+    final sumW = rawCols.fold<double>(0, (a, b) => a + b);
+    final sumH = rawRows.fold<double>(0, (a, b) => a + b);
+    final scaleX = sumW > 0 ? xfrm.width / sumW : 1.0;
+    final scaleY = sumH > 0 ? xfrm.height / sumH : 1.0;
+    final colWs = [for (final w in rawCols) w * scaleX];
+    final rowHs = [for (final h in rawRows) h * scaleY];
+
     ops.add(PushTransformOp(transformMatrixFor(xfrm)));
 
     var y = 0.0;
     for (var r = 0; r < table.rows.length; r++) {
       final row = table.rows[r];
-      final rowH = row.heightPt > 0 ? row.heightPt : 24.0;
+      final rowH = rowHs[r];
       final isHeader = table.firstRow && r == 0;
       final bodyIndex = table.firstRow ? r - 1 : r;
       final isBand = table.bandRow &&
@@ -249,9 +322,7 @@ class PptxLayout {
       var x = 0.0;
       for (var c = 0; c < row.cells.length; c++) {
         final cell = row.cells[c];
-        final colW = c < table.columnWidthsPt.length
-            ? table.columnWidthsPt[c]
-            : (xfrm.width / row.cells.length);
+        final colW = c < colWs.length ? colWs[c] : 0.0;
         final cellRect = Rect.fromLTWH(x, y, colW, rowH);
         final fill = cell.fill ??
             (isHeader

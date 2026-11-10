@@ -1,0 +1,6 @@
+# Local monorepo only — not published.
+dependency_overrides:
+  office_viewer:
+    path: ../..
+  office_viewer_engine_dart:
+    path: ../office_viewer_engine_dart

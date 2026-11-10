@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:office_viewer/office_viewer.dart';
+import 'package:office_viewer_engine_convert/office_viewer_engine_convert.dart';
 import 'package:office_viewer_engine_dart/office_viewer_engine_dart.dart';
 import 'package:office_viewer_engine_pdf/office_viewer_engine_pdf.dart';
 
@@ -14,15 +15,16 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final registry = OfficeEngineRegistry.instance..clear();
-  // PDF first (pdfrx), then Dart OOXML for DOCX / XLSX / PPTX.
+  // PDF → Convert (DOC/XLS/PPT) → Dart OOXML (DOCX/XLSX/PPTX).
   if (!kIsWeb) {
     registry
       ..register(PdfOfficeEngine())
+      ..register(ConvertOfficeEngine())
       ..register(DartOfficeEngine());
   } else {
     registry.register(FakeOfficeEngine(partCount: 3, kind: PartKind.page));
   }
-  debugPrint('office_viewer engines: pdf+dart');
+  debugPrint('office_viewer engines: pdf+convert+dart');
   runApp(const OfficeViewerExampleApp());
 }
 
@@ -40,7 +42,7 @@ class OfficeViewerExampleApp extends StatelessWidget {
   }
 }
 
-enum _SampleDoc { docx, largeSheet, deck, pdf }
+enum _SampleDoc { docx, largeSheet, deck, pdf, doc, xls, ppt }
 
 class ViewerPage extends StatefulWidget {
   const ViewerPage({super.key});
@@ -56,12 +58,15 @@ class _ViewerPageState extends State<ViewerPage> {
   String? _status;
   bool _busy = false;
 
-  // Match engines registered in main(): Dart OOXML + PDF.
+  // Match engines registered in main(): PDF + convert + Dart OOXML.
   static const _officeExtensions = [
     'docx',
     'xlsx',
     'pptx',
     'pdf',
+    'doc',
+    'xls',
+    'ppt',
   ];
 
   @override
@@ -117,6 +122,9 @@ class _ViewerPageState extends State<ViewerPage> {
         _SampleDoc.largeSheet => 'large_sheet.xlsx',
         _SampleDoc.deck => 'sample_deck.pptx',
         _SampleDoc.pdf => 'sample.pdf',
+        _SampleDoc.doc => 'sample.doc',
+        _SampleDoc.xls => 'sample.xls',
+        _SampleDoc.ppt => 'sample.ppt',
       };
 
   String _labelFor(_SampleDoc doc) => switch (doc) {
@@ -124,6 +132,9 @@ class _ViewerPageState extends State<ViewerPage> {
         _SampleDoc.largeSheet => 'Excel',
         _SampleDoc.deck => 'PowerPoint',
         _SampleDoc.pdf => 'PDF',
+        _SampleDoc.doc => 'DOC',
+        _SampleDoc.xls => 'XLS',
+        _SampleDoc.ppt => 'PPT',
       };
 
   String _assetFor(_SampleDoc doc) => 'assets/${_fileNameFor(doc)}';

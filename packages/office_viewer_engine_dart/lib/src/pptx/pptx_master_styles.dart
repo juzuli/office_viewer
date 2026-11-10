@@ -30,12 +30,13 @@ class PptxMasterStyles {
     this.bodyLevels = const [
       PptxLevelStyle(
         run: ComputedRunStyle(fontSizePt: 32),
-        bullet: '•',
+        // No invented bullet: only apply when [parsedBodyStyle] is true.
         marginLeftPt: 27,
       ),
     ],
     this.other = const ComputedRunStyle(fontSizePt: 18),
     this.otherAlign = TextAlign.left,
+    this.parsedBodyStyle = false,
   });
 
   final ComputedRunStyle title;
@@ -44,6 +45,9 @@ class PptxMasterStyles {
   final List<PptxLevelStyle> bodyLevels;
   final ComputedRunStyle other;
   final TextAlign otherAlign;
+  /// True when the slide master XML contained a `bodyStyle` block.
+  /// Empty masters from convert tools must not invent bullets for every body para.
+  final bool parsedBodyStyle;
 
   ComputedRunStyle get body =>
       bodyLevels.isNotEmpty ? bodyLevels.first.run : const ComputedRunStyle(fontSizePt: 32);
@@ -52,7 +56,7 @@ class PptxMasterStyles {
       bodyLevels.isNotEmpty ? bodyLevels.first.align : TextAlign.left;
 
   String? get bodyBullet =>
-      bodyLevels.isNotEmpty ? bodyLevels.first.bullet : '•';
+      parsedBodyStyle && bodyLevels.isNotEmpty ? bodyLevels.first.bullet : null;
 
   static const PptxMasterStyles defaults = PptxMasterStyles();
 
@@ -60,7 +64,7 @@ class PptxMasterStyles {
     if (bodyLevels.isEmpty) {
       return PptxLevelStyle(
         run: const ComputedRunStyle(fontSizePt: 32),
-        bullet: '•',
+        bullet: parsedBodyStyle ? '•' : null,
         marginLeftPt: 27.0 + level * 24.0,
       );
     }
@@ -85,6 +89,7 @@ class PptxMasterStyles {
       ComputedRunStyle? title;
       TextAlign? titleAlign;
       List<PptxLevelStyle>? bodyLevels;
+      var parsedBodyStyle = false;
       ComputedRunStyle? other;
       TextAlign? otherAlign;
 
@@ -104,6 +109,7 @@ class PptxMasterStyles {
             titleAlign = parsed.align;
           }
         } else if (local == 'bodyStyle') {
+          parsedBodyStyle = true;
           bodyLevels = _parseAllLevels(
             el,
             colors,
@@ -133,6 +139,7 @@ class PptxMasterStyles {
         bodyLevels: bodyLevels ?? defaults.bodyLevels,
         other: other ?? defaults.other,
         otherAlign: otherAlign ?? defaults.otherAlign,
+        parsedBodyStyle: parsedBodyStyle,
       );
     } catch (_) {
       return defaults;

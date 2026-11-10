@@ -56,3 +56,6 @@ app.*.map.json
 **/local.properties
 **/.gradle/
 **/.kotlin/
+
+# Local device screenshots from agent/manual convert checks
+.tmp_shots/

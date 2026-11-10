@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:office_viewer/office_viewer.dart' show clampSheetExtent;
+
 import 'cell_ref.dart';
 import 'xlsx_models.dart';
 import 'xlsx_parser.dart';
@@ -74,6 +76,11 @@ class XlsxLayout {
   static double excelColWidthToPoints(double charWidth) =>
       charWidth * maxDigitWidthPt + colPaddingPt;
 
+  /// Minimum painted grid so fit-width does not blow up tiny convert/used
+  /// ranges into a single-cell zoom (phone sheet should still look like a sheet).
+  static const int minPaintCols = 10;
+  static const int minPaintRows = 25;
+
   static CellRange paintRangeFor(XlsxSheet sheet) {
     var range = sheet.usedRange;
     final defaultColPt = excelColWidthToPoints(XlsxParser.defaultColWidth);
@@ -90,10 +97,13 @@ class XlsxLayout {
         chart.fromRow + rowsSpanned - 1,
       );
     }
-    // Keep a small empty margin like Excel's visible sheet.
-    if (sheet.charts.isNotEmpty) {
-      range = CellRange.grow(range, range.maxCol + 1, range.maxRow + 1);
-    }
+    // Floor to a compact empty grid (Excel-like), then keep one spare margin.
+    range = CellRange.grow(
+      range,
+      range.minCol + minPaintCols - 1,
+      range.minRow + minPaintRows - 1,
+    );
+    range = CellRange.grow(range, range.maxCol + 1, range.maxRow + 1);
     return range;
   }
 
@@ -135,7 +145,7 @@ class XlsxLayout {
     final height = rowTops.isEmpty ? 0.0 : rowTops.last + rowHeights.last;
 
     return XlsxSheetLayout(
-      size: Size(width, height),
+      size: clampSheetExtent(Size(width, height)),
       colLefts: colLefts,
       colWidths: colWidths,
       rowTops: rowTops,
