@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart';
 
 import '../drawing/shapes.dart';
@@ -625,14 +626,82 @@ class PptxParser {
       final w = xfrm.width > 0 && n > 0 ? xfrm.width / n : 80.0;
       colWidths.addAll(List.filled(n, w));
     }
+    final trimmed = trimTrailingEmptyTable(colWidths, rows);
+    if (trimmed.rows.isEmpty) return null;
     return PptxTable(
       transform: xfrm,
-      columnWidthsPt: colWidths,
-      rows: rows,
+      columnWidthsPt: trimmed.colWidths,
+      rows: trimmed.rows,
       firstRow: firstRow,
       bandRow: bandRow,
       styleId: styleId,
     );
+  }
+
+  /// Drops trailing all-empty columns/rows so convert/OOXML bloat does not
+  /// leave a sparse grid that looks over-zoomed inside the graphic frame.
+  @visibleForTesting
+  static ({List<double> colWidths, List<PptxTableRow> rows})
+      trimTrailingEmptyTable(
+    List<double> colWidths,
+    List<PptxTableRow> rows,
+  ) {
+    if (rows.isEmpty) {
+      return (colWidths: const <double>[], rows: const <PptxTableRow>[]);
+    }
+
+    var maxCols = 0;
+    for (final row in rows) {
+      if (row.cells.length > maxCols) maxCols = row.cells.length;
+    }
+    if (maxCols == 0) {
+      return (colWidths: const <double>[], rows: const <PptxTableRow>[]);
+    }
+
+    bool colEmpty(int c) {
+      for (final row in rows) {
+        if (c >= row.cells.length) continue;
+        final cell = row.cells[c];
+        if (cell.text.trim().isNotEmpty || cell.fill != null) return false;
+      }
+      return true;
+    }
+
+    bool rowEmpty(PptxTableRow row) {
+      for (final cell in row.cells) {
+        if (cell.text.trim().isNotEmpty || cell.fill != null) return false;
+      }
+      return true;
+    }
+
+    var lastCol = maxCols - 1;
+    while (lastCol > 0 && colEmpty(lastCol)) {
+      lastCol--;
+    }
+    var lastRow = rows.length - 1;
+    while (lastRow > 0 && rowEmpty(rows[lastRow])) {
+      lastRow--;
+    }
+
+    final keptCols = lastCol + 1;
+    final nextWidths = <double>[];
+    for (var c = 0; c < keptCols; c++) {
+      nextWidths.add(c < colWidths.length ? colWidths[c] : 80.0);
+    }
+
+    final nextRows = <PptxTableRow>[];
+    for (var r = 0; r <= lastRow; r++) {
+      final row = rows[r];
+      final cells = <PptxTableCell>[
+        for (var c = 0; c < keptCols; c++)
+          if (c < row.cells.length)
+            row.cells[c]
+          else
+            PptxTableCell(text: ''),
+      ];
+      nextRows.add(PptxTableRow(heightPt: row.heightPt, cells: cells));
+    }
+    return (colWidths: nextWidths, rows: nextRows);
   }
 
   static PptxChart? _parseChart(
@@ -720,8 +789,10 @@ class PptxParser {
         }
       }
       if (runs.isNotEmpty) {
-        paragraphs.add(
-          PptxParagraph(runs: runs, style: paraStyle, level: level),
+        paragraphs.addAll(
+          _expandParagraphNewlines(
+            PptxParagraph(runs: runs, style: paraStyle, level: level),
+          ),
         );
       }
     }
@@ -850,10 +921,50 @@ class PptxParser {
     final buf = StringBuffer();
     for (final t in root.descendants.whereType<XmlElement>()) {
       if (t.name.local == 't') {
-        buf.write(t.innerText);
+        // Office Oxide (and some exporters) use CR as a soft line break.
+        // Flutter Paragraph only breaks on LF, so normalize early.
+        buf.write(_normalizeLineEndings(t.innerText));
       }
     }
     return buf.toString();
+  }
+
+  static String _normalizeLineEndings(String text) =>
+      text.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+
+  /// Split a paragraph whose runs contain LF into one paragraph per visual line.
+  /// Keeps converted multilevel lists (CR/LF-joined in one `<a:t>`) from painting
+  /// as a single overlapping DrawTextRawOp.
+  static List<PptxParagraph> _expandParagraphNewlines(PptxParagraph para) {
+    final hasBreak = para.runs.any((r) => r.text.contains('\n'));
+    if (!hasBreak) return [para];
+
+    final out = <PptxParagraph>[];
+    var current = <PptxTextRun>[];
+
+    void flush() {
+      if (current.isEmpty) return;
+      out.add(
+        PptxParagraph(
+          runs: List<PptxTextRun>.from(current),
+          style: para.style,
+          bullet: para.bullet,
+          level: para.level,
+        ),
+      );
+      current = <PptxTextRun>[];
+    }
+
+    for (final run in para.runs) {
+      final parts = run.text.split('\n');
+      for (var i = 0; i < parts.length; i++) {
+        if (i > 0) flush();
+        if (parts[i].isEmpty) continue;
+        current.add(PptxTextRun(text: parts[i], style: run.style));
+      }
+    }
+    flush();
+    return out.isEmpty ? [para] : out;
   }
 
   static Color? _parseFillColor(XmlElement solidFill, ThemeColorResolver colors) {
