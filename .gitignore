@@ -18,6 +18,10 @@ migrate_working_dir/
 *.ipr
 *.iws
 .idea/
+.vscode/
+
+# Local Dart-engine device/spike screenshots
+example_app/spike/dart_engine_shots/
 
 # Analyze scratch dumps
 .ex_analyze.txt
