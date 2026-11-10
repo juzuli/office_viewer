@@ -1,7 +1,9 @@
 # Engine contract (from real code)
 
-Derived from `lib/src/*.dart`, `packages/office_viewer_engine_pdf`, and
-`packages/office_viewer_engine_dart`. Do not invent APIs that conflict with this.
+Derived from `lib/src/*.dart`, `packages/office_viewer_engine_pdf`,
+`packages/office_viewer_engine_dart`, and
+`packages/office_viewer_engine_convert`. Do not invent APIs that conflict with
+this.
 
 ## `OfficeEngine`
 
@@ -17,9 +19,12 @@ abstract class OfficeEngine {
 ```
 
 - Hosts register engines on `OfficeEngineRegistry.instance` (first match wins).
-- `id`: stable short string (`pdf`, `dart`).
-- `supports`: format gate; PDF engine returns false on web; Dart returns true for
+- `id`: stable short string (`pdf`, `convert`, `dart`).
+- `supports`: format gate; PDF engine returns false on web; Convert returns true
+  for `doc` / `xls` / `ppt` on mobile/desktop (false on web); missing native
+  lib → `EngineUnavailableError` in `open`; Dart returns true for
   `docx` / `xlsx` / `pptx` on Android/iOS and false on web.
+- Registration order: **PDF → Convert (optional) → Dart**.
 
 ## `OfficeDocumentHandle`
 
@@ -95,7 +100,7 @@ head bytes today — engines should still sniff content when opening.
 
 | Type | Use |
 |------|-----|
-| `UnsupportedFormatError` | No engine / wrong format / legacy binary |
+| `UnsupportedFormatError` | No engine / wrong format / non-OLE legacy input |
 | `PasswordRequiredError` | Encrypted; fixed message |
 | `CorruptDocumentError` | Truncated / bad XML / open failure |
 | `ResourceLimitError` | Oversize / decompression / complexity caps |
@@ -109,7 +114,7 @@ OfficeEngineRegistry.instance
   ..register(...); // first supports(format) wins
 ```
 
-No numeric priority API. Registration order: **PDF → Dart**.
+No numeric priority API. Registration order: **PDF → Convert (optional) → Dart**.
 
 ## How PDF implements it
 
@@ -117,10 +122,18 @@ No numeric priority API. Registration order: **PDF → Dart**.
 - `renderTile` maps region×scale → partial page render; BGRA→premul RGBA.
 - Password → `PasswordRequiredError`; oversize → `ResourceLimitError`.
 
+## How Convert implements it
+
+- `ConvertOfficeEngine` / Office Oxide FFI; supports `doc` / `xls` / `ppt`.
+- View-only: writes OOXML to a private temp file, reads bytes, deletes temp —
+  never overwrites the source path.
+- Delegates `open` of converted bytes to `DartOfficeEngine` (injectable).
+- Missing native lib → `EngineUnavailableError`. Non-OLE → `UnsupportedFormatError`.
+
 ## How Dart implements it
 
 - OPC/zip read with size and decompression guards; sniff DOCX / XLSX / PPTX.
 - Build display lists per part; `renderTile` paints the clipped region to RGBA.
 - Encrypted OOXML → `PasswordRequiredError` (no decrypt in v1).
-- Legacy binary Office → `UnsupportedFormatError`.
+- Legacy binary Office → `UnsupportedFormatError` (use Convert engine instead).
 - Use `ResourceLimitError` for limit breaches.

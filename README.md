@@ -1,7 +1,7 @@
 A Flutter package to view **PDF, Word, Excel, and PowerPoint** documents on Android and iOS.
 
 > [!IMPORTANT]
-> Install the core viewer plus engines from pub.dev: [`office_viewer`](https://pub.dev/packages/office_viewer), [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) (PDF), and [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart) (DOCX / XLSX / PPTX). Register **PDF first**, then Dart.
+> Install the core viewer plus engines from pub.dev: [`office_viewer`](https://pub.dev/packages/office_viewer), [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) (PDF), [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart) (DOCX / XLSX / PPTX), and optionally [`office_viewer_engine_convert`](packages/office_viewer_engine_convert) (DOC / XLS / PPT → OOXML, view-only). Register **PDF → Convert (optional) → Dart**.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/word.png" width="180" alt="Word (DOCX) device preview" />
@@ -22,6 +22,7 @@ A Flutter package to view **PDF, Word, Excel, and PowerPoint** documents on Andr
 - Pluggable engines via `OfficeEngineRegistry` (first match wins)
 - PDF via [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) (pdfrx / PDFium)
 - DOCX / XLSX / PPTX via [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart) (pure Dart OOXML, no native Office binaries)
+- Optional DOC / XLS / PPT via [`office_viewer_engine_convert`](packages/office_viewer_engine_convert) (Office Oxide FFI → temp OOXML → Dart engine; never overwrites the source file)
 
 ## Requirements
 
@@ -41,6 +42,9 @@ A Flutter package to view **PDF, Word, Excel, and PowerPoint** documents on Andr
 | **Word (DOCX)** | ✓ | ✓ |
 | **Excel (XLSX)** | ✓ | ✓ |
 | **PowerPoint (PPTX)** | ✓ | ✓ |
+| **Word (DOC)** | ✓ convert | ✓ convert |
+| **Excel (XLS)** | ✓ convert | ✓ convert |
+| **PowerPoint (PPT)** | ✓ convert | ✓ convert |
 | **Pan / zoom / fit-width** | ✓ | ✓ |
 | **Password-protected PDF** | ✓ | ✓ |
 | **Password-protected OOXML** | soft-fail | soft-fail |
@@ -50,7 +54,8 @@ Password-protected OOXML files surface `PasswordRequiredError` (no decrypt in th
 ### Limitations
 
 - **Mobile only for now.** Web, Windows, macOS, and Linux are not available yet.
-- **Other file types** (older DOC / XLS / PPT, OpenDocument ODT / ODS / ODP, CSV / TXT) are not supported.
+- **OpenDocument / plain text** (ODT / ODS / ODP, CSV / TXT) are not supported yet.
+- **Legacy DOC / XLS / PPT** need the optional convert engine (Android/iOS; content-shape fidelity — see that package README). Without it they soft-fail.
 - **Viewing only.** Edit, search, print, and annotations are out of scope — your app owns chrome and those workflows.
 - **You open the file.** Pass bytes or a local path after your own download / picker; cloud open is not built into the package.
 - **Large sheets.** Huge workbooks can pressure mid-range phones; we clamp sheet extent and cull tiles — still tune heap use for extreme cases.
@@ -59,13 +64,15 @@ Password-protected OOXML files surface `PasswordRequiredError` (no decrypt in th
 ## Coming next
 
 - More platforms (Web first, then desktop)
-- Broader file-type coverage and higher OOXML fidelity
+- OpenDocument / CSV / TXT and higher OOXML fidelity
 - Password-protected OOXML decrypt (where license-safe)
 
 ## Install
 
 ```bash
 flutter pub add office_viewer office_viewer_engine_pdf office_viewer_engine_dart
+# optional legacy DOC/XLS/PPT:
+flutter pub add office_viewer_engine_convert
 ```
 
 ```dart
@@ -73,13 +80,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:office_viewer/office_viewer.dart';
+import 'package:office_viewer_engine_convert/office_viewer_engine_convert.dart';
 import 'package:office_viewer_engine_dart/office_viewer_engine_dart.dart';
 import 'package:office_viewer_engine_pdf/office_viewer_engine_pdf.dart';
 ```
 
 ## Getting started
 
-Register engines once at startup. `clear()` drops any previous registrations so hot restart / tests start from a known empty registry. **Always register PDF first**, then Dart.
+Register engines once at startup. `clear()` drops any previous registrations so hot restart / tests start from a known empty registry. **Always register PDF first**, then Convert (if used), then Dart.
 
 ```dart
 void main() {
@@ -87,6 +95,7 @@ void main() {
   OfficeEngineRegistry.instance
     ..clear()
     ..register(PdfOfficeEngine())
+    ..register(ConvertOfficeEngine()) // optional: DOC/XLS/PPT
     ..register(DartOfficeEngine());
   runApp(const MyApp());
 }
@@ -228,14 +237,15 @@ OfficeDocumentView(controller: controller);
 | Engine package | Formats | Notes |
 |---|---|---|
 | `office_viewer_engine_pdf` | pdf | PDFium via pdfrx. Register **first**. |
-| `office_viewer_engine_dart` | docx/xlsx/pptx | Pure Dart OOXML. MIT-clean. Register **after** PDF. |
+| `office_viewer_engine_convert` | doc/xls/ppt | Office Oxide FFI → temp OOXML → Dart. Optional. Register **after** PDF. |
+| `office_viewer_engine_dart` | docx/xlsx/pptx | Pure Dart OOXML. MIT-clean. Register **last**. |
 
 ## Concepts
 
 - **Part** — a page, sheet, or slide. `PartInfo.size` is in points.
 - **Tile** — a rectangle of one part rendered to RGBA at a given scale (`TileRequest`).
 - **Engine** — `OfficeEngine.open()` returns an `OfficeDocumentHandle` that paints tiles.
-- **Registry** — first registered engine that supports a format wins. Register PDF first, then Dart. Call `clear()` before registering so hot restart does not stack duplicate engines.
+- **Registry** — first registered engine that supports a format wins. Register PDF → Convert (optional) → Dart. Call `clear()` before registering so hot restart does not stack duplicate engines.
 
 ## Migrating from 0.0.7 (LibreOfficeKit removed)
 
@@ -255,9 +265,9 @@ OfficeEngineRegistry.instance
    - `PartInfo.contentOrigin`
    - `PartInfo.lokPartIndex`
    - `OfficeViewerLimits.lokLoadOptions`
-4. Expect only **DOCX / XLSX / PPTX / PDF**. Older `.doc` / `.xls` / `.ppt` and OpenDocument are unsupported (soft-fail / `UnsupportedFormatError`).
+4. For legacy `.doc` / `.xls` / `.ppt`, add `office_viewer_engine_convert` and register it between PDF and Dart. OpenDocument is still unsupported.
 
-See [CHANGELOG.md](CHANGELOG.md) `0.0.8` for the full notes.
+See [CHANGELOG.md](CHANGELOG.md) `0.0.8` / `0.0.9` for the full notes.
 
 ## License
 
