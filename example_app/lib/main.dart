@@ -5,10 +5,20 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:office_viewer/office_viewer.dart';
+import 'package:office_viewer_engine_dart/office_viewer_engine_dart.dart';
 import 'package:office_viewer_engine_lok/office_viewer_engine_lok.dart';
 import 'package:office_viewer_engine_pdf/office_viewer_engine_pdf.dart';
 
 import 'leafpane_theme.dart';
+
+/// When false, skip LOK so DOCX/XLSX/PPTX use [DartOfficeEngine].
+///
+/// ```sh
+/// flutter run --dart-define=OFFICE_VIEWER_USE_LOK=false
+/// # or: example_app/tool/run_dart_engine.sh
+/// ```
+const bool kUseLokEngine =
+    bool.fromEnvironment('OFFICE_VIEWER_USE_LOK', defaultValue: true);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,14 +28,24 @@ Future<void> main() async {
   if (!kIsWeb) {
     registry.register(PdfOfficeEngine());
   }
-  final useLok = !kIsWeb &&
+  final useLok = kUseLokEngine &&
+      !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
   if (useLok) {
+    // High-fidelity private engine wins for Office when registered before Dart.
     registry.register(LokOfficeEngine());
+  }
+  if (!kIsWeb) {
+    // Pub-safe OOXML fallback (and primary Office path without LOK).
+    registry.register(DartOfficeEngine());
   } else {
     registry.register(FakeOfficeEngine(partCount: 3, kind: PartKind.page));
   }
+  debugPrint(
+    'office_viewer engines: '
+    '${useLok ? "pdf+lok+dart" : "pdf+dart (LOK off)"}',
+  );
   runApp(const OfficeViewerExampleApp());
 }
 

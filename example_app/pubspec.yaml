@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   office_viewer:
     path: ../
+  office_viewer_engine_dart:
+    path: ../packages/office_viewer_engine_dart
   office_viewer_engine_lok:
     path: ../packages/office_viewer_engine_lok
   office_viewer_engine_pdf:
@@ -34,6 +36,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/sample.docx
+    - assets/sample_chart.docx
     - assets/large_sheet.xlsx
     - assets/sample_deck.pptx
     - assets/sample.pdf

@@ -196,7 +196,7 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
-				D229AE8867E77187F69475F8 /* Copy LokIosResources into app root */,
+				962F25BD4F3595104A5105D4 /* Copy LokIosResources into app root */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				35C97EDF72EEEE5530215D78 /* [CP] Embed Pods Frameworks */,
 			);
@@ -303,6 +303,24 @@
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
 		};
+		962F25BD4F3595104A5105D4 /* Copy LokIosResources into app root */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy LokIosResources into app root";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\n# Fast stub: skip ~400MB resource copy entirely.\nif [[ -f \"${SRCROOT}/.lok_link_enabled\" && \"$(cat \"${SRCROOT}/.lok_link_enabled\")\" == \"0\" ]]; then\n  echo \"LokIosResources skip (OFFICE_VIEWER_LINK_LOK_IOS=0)\"\n  exit 0\nfi\nSRC=\"${SRCROOT}/.symlinks/plugins/office_viewer_engine_lok/ios/LokIosResources\"\nif [[ ! -d \"$SRC\" ]]; then\n  SRC=\"${SRCROOT}/../../packages/office_viewer_engine_lok/ios/LokIosResources\"\nfi\nif [[ ! -d \"$SRC\" ]]; then\n  echo \"note: LokIosResources absent — stub/fast iOS build (no LOK link)\"\n  exit 0\nfi\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nmkdir -p \"$DEST\"\n\n# Skip when already copied for this configuration (huge win on rebuilds).\nSTAMP_FILE=\"$DEST/.lok_resources_stamp\"\nSRC_MTIME=$(stat -f '%m' \"$SRC/services.rdb\" 2>/dev/null || echo 0)\nCONFIG_TAG=\"${CONFIGURATION:-Debug}|slim=${OFFICE_VIEWER_IOS_SLIM_RESOURCES:-auto}\"\nWANT_STAMP=\"${SRC_MTIME}|${CONFIG_TAG}\"\nif [[ -f \"$DEST/services.rdb\" && -f \"$STAMP_FILE\" && \"$(cat \"$STAMP_FILE\")\" == \"$WANT_STAMP\" ]]; then\n  echo \"LokIosResources skip (unchanged, app=$(du -sh \"$DEST\" | awk '{print $1}'))\"\n  exit 0\nfi\n\n# Viewer-only default: drop thesaurus/gallery/spell/fingerprint (~160MB+) —\n# not needed to open/paint docs. Override with OFFICE_VIEWER_IOS_SLIM_RESOURCES=0.\nSLIM=\"${OFFICE_VIEWER_IOS_SLIM_RESOURCES:-1}\"\nEXCLUDES=( --exclude '.DS_Store' --exclude 'ICU.dat' )\n# Keep icudt*.dat only (ICU.dat is an identical duplicate, +32MB).\nif [[ \"$SLIM\" == \"1\" ]]; then\n  EXCLUDES+=(\n    --exclude 'share/thes/***'\n    --exclude 'share/gallery/***'\n    --exclude 'share/spell/***'\n    --exclude 'share/fingerprint/***'\n    --exclude 'welcome.odt'\n  )\n  echo \"LokIosResources: slim viewer copy (no thes/gallery/spell)\"\nfi\n\n# Never --delete: DEST is the whole .app (would wipe Runner binary).\n# --copy-links: iOS bundles must not ship resources as symlinks.\n# Do NOT also copy into the plugin .framework — that doubled install size.\nrsync -a --copy-links \"${EXCLUDES[@]}\" \"$SRC\"/ \"$DEST\"/\n# Prefer a real ICU.dat name if only icudt* was copied.\nif [[ ! -f \"$DEST/ICU.dat\" ]]; then\n  ICU_SRC=$(ls \"$DEST\"/icudt*.dat 2>/dev/null | head -1 || true)\n  if [[ -n \"${ICU_SRC:-}\" ]]; then\n    ln \"$ICU_SRC\" \"$DEST/ICU.dat\" 2>/dev/null || cp -c \"$ICU_SRC\" \"$DEST/ICU.dat\" 2>/dev/null || cp \"$ICU_SRC\" \"$DEST/ICU.dat\"\n  fi\nfi\ntest -f \"$DEST/services.rdb\"\ntest -f \"$DEST/fundamentalrc\"\ntest -f \"$DEST/rc\"\ntest -f \"$DEST/ICU.dat\" || test -f \"$DEST/icudt78l.dat\"\nprintf '%s' \"$WANT_STAMP\" > \"$STAMP_FILE\"\necho \"LokIosResources → app root OK (slim=$SLIM, app=$(du -sh \"$DEST\" | awk '{print $1}'))\"\n";
+		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -361,24 +379,6 @@
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
-		};
-		D229AE8867E77187F69475F8 /* Copy LokIosResources into app root */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Copy LokIosResources into app root";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\n# Fast stub: skip ~400MB resource copy entirely.\nif [[ -f \"${SRCROOT}/.lok_link_enabled\" && \"$(cat \"${SRCROOT}/.lok_link_enabled\")\" == \"0\" ]]; then\n  echo \"LokIosResources skip (OFFICE_VIEWER_LINK_LOK_IOS=0)\"\n  exit 0\nfi\nSRC=\"${SRCROOT}/.symlinks/plugins/office_viewer_engine_lok/ios/LokIosResources\"\nif [[ ! -d \"$SRC\" ]]; then\n  SRC=\"${SRCROOT}/../../packages/office_viewer_engine_lok/ios/LokIosResources\"\nfi\nif [[ ! -d \"$SRC\" ]]; then\n  echo \"note: LokIosResources absent — stub/fast iOS build (no LOK link)\"\n  exit 0\nfi\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nmkdir -p \"$DEST\"\n\n# Skip when already copied for this configuration (huge win on rebuilds).\nSTAMP_FILE=\"$DEST/.lok_resources_stamp\"\nSRC_MTIME=$(stat -f '%m' \"$SRC/services.rdb\" 2>/dev/null || echo 0)\nCONFIG_TAG=\"${CONFIGURATION:-Debug}|slim=${OFFICE_VIEWER_IOS_SLIM_RESOURCES:-auto}\"\nWANT_STAMP=\"${SRC_MTIME}|${CONFIG_TAG}\"\nif [[ -f \"$DEST/services.rdb\" && -f \"$STAMP_FILE\" && \"$(cat \"$STAMP_FILE\")\" == \"$WANT_STAMP\" ]]; then\n  echo \"LokIosResources skip (unchanged, app=$(du -sh \"$DEST\" | awk '{print $1}'))\"\n  exit 0\nfi\n\n# Viewer-only default: drop thesaurus/gallery/spell/fingerprint (~160MB+) —\n# not needed to open/paint docs. Override with OFFICE_VIEWER_IOS_SLIM_RESOURCES=0.\nSLIM=\"${OFFICE_VIEWER_IOS_SLIM_RESOURCES:-1}\"\nEXCLUDES=( --exclude '.DS_Store' --exclude 'ICU.dat' )\n# Keep icudt*.dat only (ICU.dat is an identical duplicate, +32MB).\nif [[ \"$SLIM\" == \"1\" ]]; then\n  EXCLUDES+=(\n    --exclude 'share/thes/***'\n    --exclude 'share/gallery/***'\n    --exclude 'share/spell/***'\n    --exclude 'share/fingerprint/***'\n    --exclude 'welcome.odt'\n  )\n  echo \"LokIosResources: slim viewer copy (no thes/gallery/spell)\"\nfi\n\n# Never --delete: DEST is the whole .app (would wipe Runner binary).\n# --copy-links: iOS bundles must not ship resources as symlinks.\n# Do NOT also copy into the plugin .framework — that doubled install size.\nrsync -a --copy-links \"${EXCLUDES[@]}\" \"$SRC\"/ \"$DEST\"/\n# Prefer a real ICU.dat name if only icudt* was copied.\nif [[ ! -f \"$DEST/ICU.dat\" ]]; then\n  ICU_SRC=$(ls \"$DEST\"/icudt*.dat 2>/dev/null | head -1 || true)\n  if [[ -n \"${ICU_SRC:-}\" ]]; then\n    ln \"$ICU_SRC\" \"$DEST/ICU.dat\" 2>/dev/null || cp -c \"$ICU_SRC\" \"$DEST/ICU.dat\" 2>/dev/null || cp \"$ICU_SRC\" \"$DEST/ICU.dat\"\n  fi\nfi\ntest -f \"$DEST/services.rdb\"\ntest -f \"$DEST/fundamentalrc\"\ntest -f \"$DEST/rc\"\ntest -f \"$DEST/ICU.dat\" || test -f \"$DEST/icudt78l.dat\"\nprintf '%s' \"$WANT_STAMP\" > \"$STAMP_FILE\"\necho \"LokIosResources → app root OK (slim=$SLIM, app=$(du -sh \"$DEST\" | awk '{print $1}'))\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

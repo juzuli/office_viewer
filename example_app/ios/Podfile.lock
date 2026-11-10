@@ -1,54 +1,21 @@
 PODS:
-  - file_picker_darwin (1.0.0):
-    - Flutter
-    - FlutterMacOS
   - Flutter (1.0.0)
-  - integration_test (0.0.1):
-    - Flutter
   - office_viewer_engine_lok (0.0.1):
-    - Flutter
-  - path_provider_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
-  - pdfrx (0.0.6):
-    - Flutter
-    - FlutterMacOS
-  - url_launcher_ios (0.0.1):
     - Flutter
 
 DEPENDENCIES:
-  - file_picker_darwin (from `.symlinks/plugins/file_picker_darwin/darwin`)
   - Flutter (from `Flutter`)
-  - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - office_viewer_engine_lok (from `.symlinks/plugins/office_viewer_engine_lok/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
-  - pdfrx (from `.symlinks/plugins/pdfrx/darwin`)
-  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 EXTERNAL SOURCES:
-  file_picker_darwin:
-    :path: ".symlinks/plugins/file_picker_darwin/darwin"
   Flutter:
     :path: Flutter
-  integration_test:
-    :path: ".symlinks/plugins/integration_test/ios"
   office_viewer_engine_lok:
     :path: ".symlinks/plugins/office_viewer_engine_lok/ios"
-  path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/darwin"
-  pdfrx:
-    :path: ".symlinks/plugins/pdfrx/darwin"
-  url_launcher_ios:
-    :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
-  file_picker_darwin: 4c2b9a50ea44cb3b071381ea0cf48591bdd80251
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
-  office_viewer_engine_lok: be06324cc04b329b2fd8471610e8352eed99210a
-  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
-  pdfrx: 310e84d01e06fd2af26e16507a0e48c27e99195c
-  url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
+  office_viewer_engine_lok: 37bb075f2320cfd5786e8ea0928f7ca174c2e2c7
 
 PODFILE CHECKSUM: 0152a088aeb9937358414298bd3f60b6ba61caae
 
