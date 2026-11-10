@@ -1,7 +1,7 @@
-A Flutter package to view **PDF** (and, in the example app, Office) documents on Android and iOS.
+A Flutter package to view **PDF, Word, Excel, and PowerPoint** documents on Android and iOS.
 
 > [!IMPORTANT]
-> PDF viewing works on pub.dev today via [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf). Word, Excel, and PowerPoint use the in-repo [`office_viewer_engine_dart`](packages/office_viewer_engine_dart) engine in [`example_app/`](example_app/) and are **not** published on pub.dev yet.
+> Install the core viewer plus engines from pub.dev: [`office_viewer`](https://pub.dev/packages/office_viewer), [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) (PDF), and [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart) (DOCX / XLSX / PPTX). Register **PDF first**, then Dart.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/juzuli/office_viewer/main/screenshots/word.png" width="180" alt="Word (DOCX) device preview" />
@@ -11,7 +11,7 @@ A Flutter package to view **PDF** (and, in the example app, Office) documents on
 </p>
 
 <p align="center">
-  <sub>Example app with the Dart OOXML engine (Android). Only PDF is available from pub.dev today.</sub>
+  <sub>Example app on Android — PDF via pdfrx, Office via the pure Dart OOXML engine.</sub>
 </p>
 
 ## Features
@@ -20,12 +20,10 @@ A Flutter package to view **PDF** (and, in the example app, Office) documents on
 - Part switching (pages, sheets, slides)
 - Soft-fail on corrupt or password-protected docs (`OpenOptions(password:)`)
 - Pluggable engines via `OfficeEngineRegistry` (first match wins)
-- PDF on pub.dev today via [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) (pdfrx / PDFium)
-- DOCX / XLSX / PPTX in the example via [`office_viewer_engine_dart`](packages/office_viewer_engine_dart) (pure Dart OOXML)
+- PDF via [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) (pdfrx / PDFium)
+- DOCX / XLSX / PPTX via [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart) (pure Dart OOXML, no native Office binaries)
 
 ## Requirements
-
-Required for the recommended install (`office_viewer` + `office_viewer_engine_pdf`):
 
 | | |
 |---|---|
@@ -37,23 +35,6 @@ Required for the recommended install (`office_viewer` + `office_viewer_engine_pd
 
 ## Support
 
-### On pub.dev
-
-Install [`office_viewer`](https://pub.dev/packages/office_viewer) + [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf).
-
-| | Android | iOS |
-|---|:---:|:---:|
-| **PDF** | ✓ | ✓ |
-| **Word (DOCX)** | ✗ | ✗ |
-| **Excel (XLSX)** | ✗ | ✗ |
-| **PowerPoint (PPTX)** | ✗ | ✗ |
-| **Pan / zoom / fit-width** | ✓ | ✓ |
-| **Password-protected files** | ✓ | ✓ |
-
-### In the example app (Dart OOXML engine)
-
-The screenshots above use our example host. PDF uses the pub PDF engine; Word / Excel / PowerPoint use [`office_viewer_engine_dart`](packages/office_viewer_engine_dart) (path dependency in [`example_app/`](example_app/)).
-
 | | Android | iOS |
 |---|:---:|:---:|
 | **PDF** | ✓ | ✓ |
@@ -61,6 +42,7 @@ The screenshots above use our example host. PDF uses the pub PDF engine; Word / 
 | **Excel (XLSX)** | ✓ | ✓ |
 | **PowerPoint (PPTX)** | ✓ | ✓ |
 | **Pan / zoom / fit-width** | ✓ | ✓ |
+| **Password-protected PDF** | ✓ | ✓ |
 | **Password-protected OOXML** | soft-fail | soft-fail |
 
 Password-protected OOXML files surface `PasswordRequiredError` (no decrypt in the Dart engine yet). PDF passwords work via the PDF engine.
@@ -68,8 +50,7 @@ Password-protected OOXML files surface `PasswordRequiredError` (no decrypt in th
 ### Limitations
 
 - **Mobile only for now.** Web, Windows, macOS, and Linux are not available yet.
-- **Word, Excel, and PowerPoint are not on pub.dev yet.** The Dart OOXML engine lives in-repo and powers [`example_app/`](example_app/); pub publish for that package is still upcoming.
-- **Other file types** (older DOC / XLS / PPT, OpenDocument ODT / ODS / ODP, CSV / TXT) are not supported by the Dart engine.
+- **Other file types** (older DOC / XLS / PPT, OpenDocument ODT / ODS / ODP, CSV / TXT) are not supported.
 - **Viewing only.** Edit, search, print, and annotations are out of scope — your app owns chrome and those workflows.
 - **You open the file.** Pass bytes or a local path after your own download / picker; cloud open is not built into the package.
 - **Large sheets.** Huge workbooks can pressure mid-range phones; we clamp sheet extent and cull tiles — still tune heap use for extreme cases.
@@ -77,14 +58,14 @@ Password-protected OOXML files surface `PasswordRequiredError` (no decrypt in th
 
 ## Coming next
 
-- Publish [`office_viewer_engine_dart`](packages/office_viewer_engine_dart) on **pub.dev**
 - More platforms (Web first, then desktop)
-- Broader file-type coverage once the pub Office path lands
+- Broader file-type coverage and higher OOXML fidelity
+- Password-protected OOXML decrypt (where license-safe)
 
 ## Install
 
 ```bash
-flutter pub add office_viewer office_viewer_engine_pdf
+flutter pub add office_viewer office_viewer_engine_pdf office_viewer_engine_dart
 ```
 
 ```dart
@@ -92,19 +73,21 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:office_viewer/office_viewer.dart';
+import 'package:office_viewer_engine_dart/office_viewer_engine_dart.dart';
 import 'package:office_viewer_engine_pdf/office_viewer_engine_pdf.dart';
 ```
 
 ## Getting started
 
-Register engines once at startup. `clear()` drops any previous registrations so hot restart / tests start from a known empty registry before you register PDF (always register PDF first).
+Register engines once at startup. `clear()` drops any previous registrations so hot restart / tests start from a known empty registry. **Always register PDF first**, then Dart.
 
 ```dart
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   OfficeEngineRegistry.instance
     ..clear()
-    ..register(PdfOfficeEngine());
+    ..register(PdfOfficeEngine())
+    ..register(DartOfficeEngine());
   runApp(const MyApp());
 }
 ```
@@ -112,15 +95,15 @@ void main() {
 Own an `OfficeDocumentController` in a `State`, load a file (path or bytes), handle passwords, and dispose the controller:
 
 ```dart
-class PdfViewerPage extends StatefulWidget {
-  const PdfViewerPage({super.key, required this.path});
+class DocumentViewerPage extends StatefulWidget {
+  const DocumentViewerPage({super.key, required this.path});
   final String path; // from file_picker, cache download, etc.
 
   @override
-  State<PdfViewerPage> createState() => _PdfViewerPageState();
+  State<DocumentViewerPage> createState() => _DocumentViewerPageState();
 }
 
-class _PdfViewerPageState extends State<PdfViewerPage> {
+class _DocumentViewerPageState extends State<DocumentViewerPage> {
   late final OfficeDocumentController controller = OfficeDocumentController();
 
   @override
@@ -181,16 +164,17 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
 Bytes work the same way when you already have the file in memory (keep the extension in `fileName`):
 
 ```dart
-final pdfBytes = await File(widget.path).readAsBytes();
+final bytes = await File(widget.path).readAsBytes();
 await controller.load(
-  DocumentSource.bytes(pdfBytes, fileName: 'doc.pdf'),
+  DocumentSource.bytes(bytes, fileName: 'report.docx'),
 );
 ```
 
 `OfficeLoadState`: `idle` → `loading` → `ready` or `failed`. On failure, read `controller.error` (`PasswordRequiredError`, `CorruptDocumentError`, `UnsupportedFormatError`, …).
 
 Packages: [`office_viewer`](https://pub.dev/packages/office_viewer) ·
-[`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf)
+[`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) ·
+[`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart)
 
 See the minimal PDF sample in [`example/`](example/) and the full Office host in [`example_app/`](example_app/). Issues: [github.com/juzuli/office_viewer/issues](https://github.com/juzuli/office_viewer/issues).
 
@@ -243,8 +227,8 @@ OfficeDocumentView(controller: controller);
 
 | Engine package | Formats | Notes |
 |---|---|---|
-| `office_viewer_engine_pdf` | pdf | PDFium via pdfrx. Register **first**. Pub-ready. |
-| `office_viewer_engine_dart` | docx/xlsx/pptx | Pure Dart OOXML. MIT-clean; used in `example_app/`. Register **after** PDF. |
+| `office_viewer_engine_pdf` | pdf | PDFium via pdfrx. Register **first**. |
+| `office_viewer_engine_dart` | docx/xlsx/pptx | Pure Dart OOXML. MIT-clean. Register **after** PDF. |
 
 ## Concepts
 
@@ -255,10 +239,10 @@ OfficeDocumentView(controller: controller);
 
 ## Migrating from 0.0.7 (LibreOfficeKit removed)
 
-`office_viewer` **0.0.8** drops the private LibreOfficeKit engine. Office files go through in-repo [`office_viewer_engine_dart`](packages/office_viewer_engine_dart).
+`office_viewer` **0.0.8** drops the private LibreOfficeKit engine. Office files use [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart).
 
 1. Remove `office_viewer_engine_lok` from your pubspec and stop registering `LokOfficeEngine`.
-2. Register engines as PDF → Dart:
+2. Add `office_viewer_engine_dart` and register PDF → Dart:
 
 ```dart
 OfficeEngineRegistry.instance
@@ -279,4 +263,4 @@ See [CHANGELOG.md](CHANGELOG.md) `0.0.8` for the full notes.
 
 MIT — see [LICENSE](LICENSE).
 
-The packages (`office_viewer`, `office_viewer_engine_pdf`, and in-repo `office_viewer_engine_dart`) are MIT. Contributor setup: [CONTRIBUTING.md](CONTRIBUTING.md).
+The packages (`office_viewer`, `office_viewer_engine_pdf`, and `office_viewer_engine_dart`) are MIT. Contributor setup: [CONTRIBUTING.md](CONTRIBUTING.md).

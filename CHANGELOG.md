@@ -5,6 +5,7 @@
 * **Breaking:** legacy binary Office (`.doc` / `.xls` / `.ppt`) and OpenDocument are no longer opened — use OOXML (`.docx` / `.xlsx` / `.pptx`) or PDF.
 * Example host registers `PdfOfficeEngine` then `DartOfficeEngine` (no `OFFICE_VIEWER_USE_LOK` toggle).
 * Export `OfficeViewerLimits` from the package barrel for host tile/memory caps.
+* Pair with [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart) `0.1.0` for DOCX / XLSX / PPTX on pub.dev.
 
 ### Migrating from 0.0.7
 

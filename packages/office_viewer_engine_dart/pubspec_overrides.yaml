@@ -1,0 +1,5 @@
+# Local monorepo only — not published. Keeps path resolution during development
+# before / beside pub.dev office_viewer ^0.0.8.
+dependency_overrides:
+  office_viewer:
+    path: ../..
