@@ -4,7 +4,7 @@ Optional engine for [`office_viewer`](https://pub.dev/packages/office_viewer): c
 
 - **View only** — the original file is never overwritten.
 - **Native** — [Office Oxide](https://github.com/yfedoseev/office_oxide) via FFI (MIT OR Apache-2.0).
-- **Platforms** — Android (arm64 `.so`), iOS (static `OfficeOxide.xcframework`), macOS arm64 (tests/desktop).
+- **Platforms** — Android (arm64 `.so`), iOS (dynamic `OfficeOxide.xcframework`), macOS arm64 (tests/desktop).
 
 ### iOS native library
 
