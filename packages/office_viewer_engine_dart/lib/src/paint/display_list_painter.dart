@@ -7,7 +7,7 @@ class DisplayListPainter {
   const DisplayListPainter();
 
   static void paint(Canvas canvas, DisplayList list) {
-    final painter = DisplayListPainter();
+    const painter = DisplayListPainter();
     painter._paint(canvas, list);
   }
 

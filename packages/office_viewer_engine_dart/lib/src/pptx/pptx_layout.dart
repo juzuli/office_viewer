@@ -45,7 +45,7 @@ class PptxLayout {
       for (final child in node.children) {
         _emitChildInGroup(ops, child, node.transform, decodedImages, theme);
       }
-      ops.add(PopTransformOp());
+      ops.add(const PopTransformOp());
       return;
     }
     if (node is PptxShape) {
@@ -106,7 +106,7 @@ class PptxLayout {
       for (final gc in child.children) {
         _emitChildInGroup(ops, gc, childXfrm, decodedImages, theme);
       }
-      ops.add(PopTransformOp());
+      ops.add(const PopTransformOp());
     }
   }
 
@@ -215,7 +215,7 @@ class PptxLayout {
       }
     }
 
-    ops.add(PopTransformOp());
+    ops.add(const PopTransformOp());
   }
 
   bool _isTitleLike(String? type) =>
@@ -229,7 +229,7 @@ class PptxLayout {
     final headerFill = accent;
     // Medium Style 2 – Accent 1 band: ~20% tint of accent1 toward white.
     final bandFill = _tint(accent, 0.80);
-    final plainFill = const Color(0xFFFFFFFF);
+    const plainFill = Color(0xFFFFFFFF);
     final grid = table.bandRow || table.firstRow
         ? const Color(0xFFFFFFFF)
         : const Color(0xFFB0B0B0);
@@ -282,7 +282,7 @@ class PptxLayout {
       y += rowH;
     }
 
-    ops.add(PopTransformOp());
+    ops.add(const PopTransformOp());
   }
 
   /// Mix [color] toward white by [amount] (0 = unchanged, 1 = white).
@@ -308,7 +308,7 @@ class PptxLayout {
 
     ops.add(PushTransformOp(transformMatrixFor(xfrm)));
     ops.addAll(painted.ops);
-    ops.add(PopTransformOp());
+    ops.add(const PopTransformOp());
   }
 
   void _emitPicture(

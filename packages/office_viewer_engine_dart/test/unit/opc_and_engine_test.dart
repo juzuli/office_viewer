@@ -177,9 +177,9 @@ void main() {
       expect(handle.parts.first.kind, entry.$4);
       expect(handle.parts.first.size.width, greaterThan(0));
       final tile = await handle.renderTile(
-        TileRequest(
+        const TileRequest(
           partIndex: 0,
-          region: const Rect.fromLTWH(0, 0, 64, 64),
+          region: Rect.fromLTWH(0, 0, 64, 64),
           scale: 1,
         ),
       );

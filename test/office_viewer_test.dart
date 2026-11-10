@@ -9,17 +9,33 @@ void main() {
     expect(OfficeFormat.fromName('noext'), OfficeFormat.unknown);
   });
 
-  test('PartInfo is index/kind/size/name only (no LOK fields)', () {
+  test('PartInfo public surface is index/kind/size/name (LOK fields removed in 0.0.8)',
+      () {
+    // Contract: do not reintroduce contentOrigin / lokPartIndex on PartInfo.
     const part = PartInfo(
       index: 2,
       kind: PartKind.page,
       size: Size(100, 200),
       name: 'Page 3',
     );
-    expect(part.index, 2);
-    expect(part.kind, PartKind.page);
-    expect(part.size, const Size(100, 200));
-    expect(part.name, 'Page 3');
+    final surface = <String, Object?>{
+      'index': part.index,
+      'kind': part.kind,
+      'size': part.size,
+      'name': part.name,
+    };
+    expect(surface.keys.toList(), ['index', 'kind', 'size', 'name']);
+    expect(surface['index'], 2);
+    expect(surface['kind'], PartKind.page);
+    expect(surface['size'], const Size(100, 200));
+    expect(surface['name'], 'Page 3');
+  });
+
+  test('OfficeViewerLimits no longer exposes lokLoadOptions', () {
+    // Remaining viewer caps after 0.0.8 (compile fails if renamed away).
+    expect(OfficeViewerLimits.maxMountedTiles, greaterThan(0));
+    expect(OfficeViewerLimits.maxPaintPx, greaterThan(0));
+    expect(OfficeViewerLimits.defaultMaxBytes, greaterThan(0));
   });
 
   test('registry picks first engine that supports the format', () {

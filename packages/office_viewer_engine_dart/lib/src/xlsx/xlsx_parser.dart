@@ -247,7 +247,7 @@ class XlsxParser {
           case 'mergeCells':
             mergeCellsEl = el;
           case 'cols':
-            if (colsEl == null) colsEl = el;
+            colsEl ??= el;
           case 'drawing':
             drawingRid ??= _relationshipId(el);
         }
@@ -504,8 +504,8 @@ class XlsxParser {
       // Match XlsxLayout.excelColWidthToPoints without importing layout.
       const maxDigitWidthPt = 7 * (72 / 96);
       const colPaddingPt = 5 * (72 / 96);
-      final colPt = defaultColWidth * maxDigitWidthPt + colPaddingPt;
-      final rowPt = defaultRowHeightPt;
+      const colPt = defaultColWidth * maxDigitWidthPt + colPaddingPt;
+      const rowPt = defaultRowHeightPt;
       widthPt = (toCol - fromCol) * colPt - colOff + toColOff;
       heightPt = (toRow - fromRow) * rowPt - rowOff + toRowOff;
       if (widthPt <= 0) widthPt = colPt * 6;

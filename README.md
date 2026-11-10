@@ -253,6 +253,28 @@ OfficeDocumentView(controller: controller);
 - **Engine** — `OfficeEngine.open()` returns an `OfficeDocumentHandle` that paints tiles.
 - **Registry** — first registered engine that supports a format wins. Register PDF first, then Dart. Call `clear()` before registering so hot restart does not stack duplicate engines.
 
+## Migrating from 0.0.7 (LibreOfficeKit removed)
+
+`office_viewer` **0.0.8** drops the private LibreOfficeKit engine. Office files go through in-repo [`office_viewer_engine_dart`](packages/office_viewer_engine_dart).
+
+1. Remove `office_viewer_engine_lok` from your pubspec and stop registering `LokOfficeEngine`.
+2. Register engines as PDF → Dart:
+
+```dart
+OfficeEngineRegistry.instance
+  ..clear()
+  ..register(PdfOfficeEngine())
+  ..register(DartOfficeEngine());
+```
+
+3. Delete references to removed API:
+   - `PartInfo.contentOrigin`
+   - `PartInfo.lokPartIndex`
+   - `OfficeViewerLimits.lokLoadOptions`
+4. Expect only **DOCX / XLSX / PPTX / PDF**. Older `.doc` / `.xls` / `.ppt` and OpenDocument are unsupported (soft-fail / `UnsupportedFormatError`).
+
+See [CHANGELOG.md](CHANGELOG.md) `0.0.8` for the full notes.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

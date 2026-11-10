@@ -352,7 +352,7 @@ class NumberFormat {
     final sign = negative ? '-' : (v < 0 ? '-' : '');
     final mStr = mantissa.abs().toStringAsFixed(decimals);
     final eStr = mag >= 0 ? '+$mag' : '$mag';
-    return '${sign}${mStr}E$eStr';
+    return '$sign${mStr}E$eStr';
   }
 
   static String _formatPercent(double v, String pattern, {required bool negative}) {

@@ -15,7 +15,7 @@ class PackageReader {
     required Map<String, Uint8List> entries,
     required this.contentTypes,
     required List<String> warnings,
-  })  : _entries = entries,
+  })  : _entries = entries, // ignore: prefer_initializing_formals
         warnings = List.unmodifiable(warnings);
 
   final ResourceLimits limits;

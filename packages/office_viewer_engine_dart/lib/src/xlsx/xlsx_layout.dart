@@ -77,7 +77,7 @@ class XlsxLayout {
   static CellRange paintRangeFor(XlsxSheet sheet) {
     var range = sheet.usedRange;
     final defaultColPt = excelColWidthToPoints(XlsxParser.defaultColWidth);
-    final defaultRowPt = XlsxParser.defaultRowHeightPt;
+    const defaultRowPt = XlsxParser.defaultRowHeightPt;
     for (final chart in sheet.charts) {
       final colsSpanned =
           ((chart.colOffPt + chart.widthPt) / defaultColPt).ceil().clamp(1, 64);

@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print — intentional dump test for slide IR inspection
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:office_viewer_engine_dart/src/opc/package_reader.dart';

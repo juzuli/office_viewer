@@ -9,13 +9,13 @@ class DartDocumentHandle implements OfficeDocumentHandle {
     required this.format,
     required this.parts,
     required this.package,
-    required List<DisplayList?> displayLists,
+    required List<DisplayList> displayLists,
     TileRenderer? tileRenderer,
-  })  : _displayLists = displayLists,
+  })  : _displayLists = displayLists, // ignore: prefer_initializing_formals
         _tileRenderer = tileRenderer ?? TileRenderer();
 
   final PackageReader package;
-  final List<DisplayList?> _displayLists;
+  final List<DisplayList> _displayLists;
   final TileRenderer _tileRenderer;
   bool _closed = false;
 
@@ -25,7 +25,7 @@ class DartDocumentHandle implements OfficeDocumentHandle {
   @override
   final List<PartInfo> parts;
 
-  List<DisplayList?> get displayLists => _displayLists;
+  List<DisplayList> get displayLists => _displayLists;
 
   @override
   Future<RenderedTile> renderTile(TileRequest request) async {
@@ -35,11 +35,11 @@ class DartDocumentHandle implements OfficeDocumentHandle {
     if (request.partIndex < 0 || request.partIndex >= parts.length) {
       throw CorruptDocumentError('Bad part index ${request.partIndex}');
     }
-    final list = _displayLists[request.partIndex];
-    if (list == null) {
-      throw CorruptDocumentError('No display list for part ${request.partIndex}');
-    }
-    return _tileRenderer.render(list, request.region, request.scale);
+    return _tileRenderer.render(
+      _displayLists[request.partIndex],
+      request.region,
+      request.scale,
+    );
   }
 
   @override

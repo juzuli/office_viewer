@@ -250,8 +250,8 @@ class DartOfficeEngine implements OfficeEngine {
       await _decodeSlideImages(slide.shapes, decoded);
     }
 
-    final inheritance = const PptxInheritance();
-    final layout = const PptxLayout();
+    const inheritance = PptxInheritance();
+    const layout = PptxLayout();
     final parts = <PartInfo>[];
     final lists = <DisplayList>[];
     for (var i = 0; i < doc.slides.length; i++) {
