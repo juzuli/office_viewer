@@ -1,0 +1,6 @@
+build/
+.dart_tool/
+pubspec.lock
+*.bak
+tool/bench/
+tool/compare_with_lok.dart

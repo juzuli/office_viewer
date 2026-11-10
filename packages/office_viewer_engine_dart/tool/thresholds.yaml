@@ -1,0 +1,8 @@
+# Fidelity harness thresholds (SSIM vs LOK). Tune with reason in git history.
+pptx:
+  ssim_min: 0.85
+xlsx:
+  ssim_min: 0.85
+docx:
+  ssim_min: 0.80
+  page_count_delta_max: 1
