@@ -1,7 +1,11 @@
+## 0.0.7
+
+* Fix `OfficeDocumentController` constructor: restore public `viewOptions:` named parameter (`this._viewOptions` is illegal / `private_optional_parameter`).
+
 ## 0.0.6
 
 * Add a minimal publishable PDF `example/` for pub points; move the private LOK host to `example_app/`.
-* Fix `OfficeDocumentController` initializing-formal lint (static analysis INFO).
+* Attempted initializing-formal cleanup (reverted in 0.0.7).
 
 ## 0.0.5
 

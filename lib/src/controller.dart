@@ -27,8 +27,10 @@ enum OfficeLoadState { idle, loading, ready, failed }
 class OfficeDocumentController extends ChangeNotifier {
   OfficeDocumentController({
     OfficeEngineRegistry? registry,
-    this._viewOptions = const OfficeViewOptions(),
-  }) : _registry = registry ?? OfficeEngineRegistry.instance;
+    OfficeViewOptions viewOptions = const OfficeViewOptions(),
+  })  : _registry = registry ?? OfficeEngineRegistry.instance,
+        // ignore: prefer_initializing_formals
+        _viewOptions = viewOptions;
 
   /// Defaults used when [OfficeViewOptions] is not customized.
   static const double defaultMinZoom = 1.0;
