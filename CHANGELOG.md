@@ -1,7 +1,11 @@
+## 0.0.10
+
+* Optional legacy DOC / XLS / PPT via [`office_viewer_engine_convert`](https://pub.dev/packages/office_viewer_engine_convert) (Office Oxide FFI → temp OOXML → Dart engine; view-only).
+* Docs: register **PDF → Convert (optional) → Dart**; support matrix and install snippets updated.
+
 ## 0.0.9
 
 * Shorten `pubspec.yaml` description to satisfy pub.dev length limits (60–180 chars).
-* Optional legacy DOC / XLS / PPT via [`office_viewer_engine_convert`](packages/office_viewer_engine_convert) (Office Oxide FFI → temp OOXML → Dart engine; view-only). Register PDF → Convert → Dart.
 
 ## 0.0.8
 

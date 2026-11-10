@@ -1,6 +1,6 @@
 name: office_viewer_engine_dart
 description: Pure Dart OOXML engine for office_viewer (DOCX / XLSX / PPTX). MIT-clean, no native binaries.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/juzuli/office_viewer
 repository: https://github.com/juzuli/office_viewer
 issue_tracker: https://github.com/juzuli/office_viewer/issues
