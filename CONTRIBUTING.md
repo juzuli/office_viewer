@@ -73,6 +73,10 @@ Run this checklist whenever user-facing or publishable code lands on `main`.
 Skip items that truly do not apply; do not skip the **Docs sync** or **Pub
 example** rows if engines / install instructions changed.
 
+In Cursor, run the custom command **`/post-merge-main`**
+([`.cursor/commands/post-merge-main.md`](.cursor/commands/post-merge-main.md))
+to have the agent walk this list.
+
 ### 1. Quality gate
 - [ ] On `main`: `flutter pub get && flutter analyze && flutter test`
 - [ ] Smoke [`example/`](example/) and/or [`example_app/`](example_app/) on a device if viewers/engines changed
