@@ -1,6 +1,6 @@
 name: office_viewer_engine_pdf
-description: PDFium-backed PDF engine for office_viewer (pdfrx).
-version: 0.0.2
+description: PDFium-backed PDF engine for office_viewer using pdfrx on Android and iOS.
+version: 0.0.3
 homepage: https://github.com/juzuli/office_viewer
 repository: https://github.com/juzuli/office_viewer
 issue_tracker: https://github.com/juzuli/office_viewer/issues
@@ -13,7 +13,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  office_viewer: ^0.0.1
+  office_viewer: ^0.0.8
   # 2.4.7 → pdfrx_engine 0.4.5 fails null-safety analyze on current Dart.
   pdfrx: ^2.5.0
 

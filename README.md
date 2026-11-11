@@ -185,7 +185,7 @@ Packages: [`office_viewer`](https://pub.dev/packages/office_viewer) ·
 [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) ·
 [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart)
 
-See the minimal PDF sample in [`example/`](example/) and the full Office host in [`example_app/`](example_app/). Issues: [github.com/juzuli/office_viewer/issues](https://github.com/juzuli/office_viewer/issues).
+See the pub sample in [`example/`](example/) (PDF + Dart, optional convert) and the full Leafpane host in [`example_app/`](example_app/). Issues: [github.com/juzuli/office_viewer/issues](https://github.com/juzuli/office_viewer/issues).
 
 ## Controller and view options
 

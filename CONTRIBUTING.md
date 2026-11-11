@@ -5,7 +5,7 @@ Thanks for helping with `office_viewer`. Pub packages:
 - [`office_viewer`](https://pub.dev/packages/office_viewer) — viewer shell
 - [`office_viewer_engine_pdf`](https://pub.dev/packages/office_viewer_engine_pdf) — PDF
 - [`office_viewer_engine_dart`](https://pub.dev/packages/office_viewer_engine_dart) — DOCX / XLSX / PPTX
-- [`office_viewer_engine_convert`](packages/office_viewer_engine_convert) — optional DOC / XLS / PPT convert
+- [`office_viewer_engine_convert`](https://pub.dev/packages/office_viewer_engine_convert) — optional DOC / XLS / PPT convert
 
 Local development uses path deps in [`example_app/`](example_app/) and
 package `pubspec_overrides.yaml` files.
@@ -27,7 +27,7 @@ flutter run -d <android-or-ios-device>
 `example_app` registers `PdfOfficeEngine`, then `ConvertOfficeEngine`, then
 `DartOfficeEngine`. Bundled samples: [`example_app/README.md`](example_app/README.md).
 
-Minimal PDF-only sample (pub-friendly): [`example/`](example/).
+Pub sample (PDF + Dart, optional convert): [`example/`](example/).
 
 ## Dart engine package
 

@@ -1,5 +1,5 @@
 name: office_viewer_example
-description: Minimal PDF example for office_viewer (pub.dev sample).
+description: Pub.dev sample for office_viewer — PDF, Dart OOXML, optional legacy convert.
 publish_to: 'none'
 version: 0.1.0
 
@@ -12,22 +12,34 @@ dependencies:
     sdk: flutter
   office_viewer:
     path: ../
-  # Hosted so the example resolves from the pub cache (packages/ is not published).
-  office_viewer_engine_pdf: ^0.0.2
+  # Hosted engines (packages/ is excluded from the published office_viewer tarball).
+  office_viewer_engine_pdf: ^0.0.3
+  office_viewer_engine_dart: ^0.1.1
+  # Optional DOC/XLS/PPT → OOXML (native). Remove this dep + ConvertOfficeEngine
+  # registration below if you only need PDF / DOCX / XLSX / PPTX.
+  office_viewer_engine_convert: ^0.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
 
-# Monorepo: prefer local engine while developing against main.
+# Monorepo: prefer local packages while developing against main.
 dependency_overrides:
   office_viewer:
     path: ../
   office_viewer_engine_pdf:
     path: ../packages/office_viewer_engine_pdf
+  office_viewer_engine_dart:
+    path: ../packages/office_viewer_engine_dart
+  office_viewer_engine_convert:
+    path: ../packages/office_viewer_engine_convert
 
 flutter:
   uses-material-design: true
   assets:
     - assets/sample.pdf
+    - assets/sample.docx
+    - assets/large_sheet.xlsx
+    - assets/sample_deck.pptx
+    - assets/sample.doc

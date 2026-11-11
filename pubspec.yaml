@@ -1,6 +1,6 @@
 name: office_viewer
 description: Tile-based Flutter viewer for PDF and Office docs with host chrome, fit-width pan/zoom, and soft-fail on corrupt files.
-version: 0.0.10
+version: 0.0.11
 homepage: https://github.com/juzuli/office_viewer
 repository: https://github.com/juzuli/office_viewer
 issue_tracker: https://github.com/juzuli/office_viewer/issues

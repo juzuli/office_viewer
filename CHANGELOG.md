@@ -1,3 +1,8 @@
+## 0.0.11
+
+* Pub `example/`: PDF + Dart OOXML samples, optional `ConvertOfficeEngine` for legacy DOC (toggle `kRegisterConvertEngine`).
+* Docs: align example README with published engines.
+
 ## 0.0.10
 
 * Optional legacy DOC / XLS / PPT via [`office_viewer_engine_convert`](https://pub.dev/packages/office_viewer_engine_convert) (Office Oxide FFI → temp OOXML → Dart engine; view-only).
